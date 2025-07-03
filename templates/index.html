@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>积分管理系统</title>
+</head>
+<body>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1>欢迎回来，{{username}}</h1>
+        <h2>现在积分是：{{point}}</h2>
+    </div>
+</div>
+<div style="text-align: right; margin-right: 50px;">
+    <a href="/logout">退出登录</a><br>
+    <a href="/delete_account">注销账户</a>
+</div>
+<div style="display: flex; width: 100%; height: 100%;">
+    <table id="reward">
+        <tr class="table-header">
+            <td>
+                <h3>奖励名称</h3>
+            </td>
+            <td>
+                <h3>分值</h3>
+            </td>
+        </tr>
+        {{rewards|safe}}
+        <tr>
+            <td>
+                <a href="add_new?type=reward">添加新奖励</a>
+            </td>
+            <td>
+                <a href="remove?type=reward">删除奖励</a>
+            </td>
+        </tr>
+    </table>
+
+    <table id="task">
+        <tr class="table-header">
+            <td>
+                <h3>任务名称</h3>
+            </td>
+            <td>
+                <h3>分值</h3>
+            </td>
+        </tr>
+        {{tasks|safe}}
+        <tr>
+            <td>
+                <a href="add_new?type=task">添加新任务</a>
+            </td>
+            <td>
+                <a href="remove?type=task">删除任务</a>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

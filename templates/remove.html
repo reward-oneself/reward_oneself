@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>删除奖励或任务</title>
+</head>
+<body>
+<h1>删除</h1>
+<form action="/remove_submit?type={{type}}" method="post">
+    {{text|safe}}
+    <button type="submit">删除</button>
+    <button onclick="window.location.href='/'" type="button">取消</button>
+</form>
+</body>
+</html>
