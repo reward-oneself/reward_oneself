@@ -24,21 +24,23 @@
    ```
 2. 配置环境变量：
    Linux:
+
    ```bash
    export DATA = 'sqlite:///data.db'
    export KEY = 'your_secret_key'
-   export DEVELOPMENT=True
    ```
 
    Windows PowerShell:
+
    ```powershell
    $env:DATA = 'sqlite:///data.db'
    $env:KEY = 'your_secret_key'
-   $env:DEVELOPMENT=True
    ```
 3. 初始化数据库：
-    如果环境变量DEVELOPMENT=True，则会自动创建并初始化数据库
 
+   ```bash
+   python init.py
+   ```
 4. 运行应用：
 
    ```bash

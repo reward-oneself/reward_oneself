@@ -30,6 +30,7 @@
 <h1>删除</h1>
 <form action="/remove_submit?type={{type}}" method="post">
     {{text|safe}}
+    <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
     <button type="submit">删除</button>
     <button onclick="window.location.href='/'" type="button">取消</button>
 </form>
