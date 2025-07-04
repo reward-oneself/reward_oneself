@@ -6,14 +6,18 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect  # 新增CSRF扩展
 
 app = Flask(__name__)
-data = os.environ.get('DATA', 'data')
+data = os.environ.get('DATA', 'sqlite:///data.db')
 key = os.environ.get('KEY', 'key')
 app.config['SQLALCHEMY_DATABASE_URI'] = data
-app.config['SECRET_KEY'] = key
+app.config['SECRET_KEY'] = key  # 建议通过环境变量强制配置
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# 初始化CSRF保护
+csrf = CSRFProtect(app)
 
 # 初始化LoginManager
 login_manager = LoginManager(app)

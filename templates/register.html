@@ -10,6 +10,7 @@
 <body>
 <h1>注册</h1>
 <form action="/register_submit" method="post">
+    {{csrf_token}}
     <label for="username">用户名</label><br>
     <input id="username" name="username" required type="text"><br><br>
     <label for="password">密码（至少6位）</label><br>
