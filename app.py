@@ -1,14 +1,17 @@
 from typing import Optional, Dict, Any  # 添加缺失的类型导入
 
 import flask_login
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config['SECRET_KEY'] = 'your_secret_key'
+data = os.environ.get('DATA', 'data')
+key = os.environ.get('KEY', 'key')
+app.config['SQLALCHEMY_DATABASE_URI'] = data
+app.config['SECRET_KEY'] = key
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -57,10 +60,6 @@ class UserData(db.Model):
     point = db.Column(db.Integer, nullable=False, default=0)
     task = db.Column(db.JSON, nullable=False, default=lambda: {})
     user = db.relationship('User', backref=db.backref('user_data', uselist=False, cascade='all, delete-orphan'))
-
-
-with app.app_context():
-    db.create_all()
 
 
 @app.route('/login')
