@@ -41,6 +41,8 @@ csrf = CSRFProtect(app)
 # 初始化LoginManager
 login_manager = LoginManager(app)
 
+def init_db():
+    db.create_all()  # 创建所有表
 
 # 用户加载函数
 @login_manager.user_loader
