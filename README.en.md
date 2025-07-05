@@ -15,6 +15,44 @@ Do you often feel that after working or studying hard, you forget to give yourse
 - **Point System:** Earning points is not easy and requires users to truly put in effort and time to complete tasks. This setting ensures the value of rewards, preventing them from becoming too easily obtainable and losing their motivational significance.
 - **Personalized Settings:** Users can set the difficulty of rewards according to their own situations. For example, if the reward is allowing themselves 20 minutes of gaming time, they should usually stick to staying off the internet to ensure that this reward is attractive enough to themselves.
 
+## Priority Calculation Rules  
+
+To help users better manage tasks, the application introduces the concept of task priority. The priority of each task is comprehensively calculated based on the following factors:  
+
+
+### Importance  
+Users can select the importance of a task on a scale from 0 to 5, where:  
+- 0 indicates "Not Important"  
+- 3 indicates "Important"  
+- 4 indicates "Very Important"  
+- 5 indicates "Extremely Important" (corresponding to infinity), recommended for non-negotiable tasks (such as going to work or school)  
+
+
+### Urgency  
+Users can select the urgency level of a task on a scale from 1 to 3, where:  
+- 1 indicates "Not Urgent"  
+- 2 indicates "Moderately Urgent"  
+- 3 indicates "Urgent"  
+
+
+### Value  
+Users can select the value of a task on a scale from 1 to 3, where:  
+- 1 indicates "Low Value"  
+- 2 indicates "Medium Value"  
+- 3 indicates "High Value"  
+
+
+### Time  
+Users need to input the time required to complete the task, in minutes.  
+
+
+### The priority calculation formula is as follows:  
+**Priority = Importance × 4 + Urgency × 2 + Value × 3 − Time ÷ 10**  
+
+Specifically, if a task is marked as "Extremely Important," its priority is infinity (i.e., the highest priority).  
+
+This approach allows users to more intuitively understand which tasks deserve top priority, thereby enhancing work efficiency and quality of life.
+
 ## Operation
 
 1. Install dependencies:
