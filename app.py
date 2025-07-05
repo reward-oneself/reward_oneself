@@ -166,7 +166,6 @@ def index():
     def sort_task():
         task_name_priority = {}
         for name,value in task.items():
-            print(value)
             for n,v in value.items():
                 if n == 'priority':
                     if v == 'max':
@@ -174,7 +173,6 @@ def index():
                     else:
                         task_name_priority[name] = v
                     break
-        print(task_name_priority)
         sorted_task = sorted(task_name_priority.items(), key=lambda x: x[1] ,reverse=True) #正序排列，返回包含元组的列表
         sort_task_name_list = []
         for i in sorted_task:
@@ -182,15 +180,9 @@ def index():
         return sort_task_name_list
     task_text = ""
     sort_task_name_list = sort_task()
-    # for name, value in task.items():
-    #     task_text += f"<tr><td><a href='point?point_change={value}&name={name}'>{name}</a></td><td>{value}</td></tr>"
-    print(sort_task_name_list)
     for i in sort_task_name_list:
         task_data = task.get(i)
-        print(task_data)
-        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"
-        print(task_text)
-            
+        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"            
     return render_template('index.html', username=user.username, point=point_value, reward=reward_text,
                            task=task_text)
 
@@ -224,15 +216,14 @@ def point():
         else:
             result = "失败，积分不足"
         if not repeat:
-            # try:
-            task = dict(user.user_data.task)
-            del task[name]
-            user.user_data.task = task
-            db.session.commit()
-            result = "成功。因为没有重复，所以该任务已自动删除"
-            # except Exception as e:
-            #     result = "兑换成功，但是因为删除任务时出错，该任务没有被删除"
-            #     print(e)
+            try:
+                task = dict(user.user_data.task)
+                del task[name]
+                user.user_data.task = task
+                db.session.commit()
+                result = "成功。因为没有重复，所以该任务已自动删除"
+            except:
+                result = "兑换成功，但是因为删除任务时出错，该任务没有被删除"
         return render_template('point.html',
                                result=result,
                                name=name,
@@ -287,7 +278,6 @@ def add_reward_submit():
             return redirect(url_for('index'))
         except Exception as e:
             db.session.rollback()  # 回滚事务
-            print(f"数据库错误: {str(e)}")  # 记录详细错误信息
             return render_template('error.html', type=f"数据库错误")
     else:
         return render_template('error.html', type="参数错误或参数不符合要求")
@@ -417,7 +407,6 @@ def remove_submit() -> str:
     """
     type_name: Optional[str] = request.args.get('type')
     form_data: Dict[str, str] = request.form.to_dict()
-    print(form_data)
 
     if type_name:
         user = flask_login.current_user
@@ -432,7 +421,6 @@ def remove_submit() -> str:
                     if name not in form_data
                 }
                 user.user_data.reward = updated_reward  # 完全替换字典触发数据库更新
-                print("删除了奖励：", ", ".join(set(reward.keys()) - set(updated_reward.keys())))
             else:
                 # 创建当前任务数据的副本并完全替换原有字段
                 task: Dict[str, Any] = dict(user.user_data.task)  # 创建新对象确保SQLAlchemy检测到变化
@@ -442,13 +430,11 @@ def remove_submit() -> str:
                     if name not in form_data
                 }
                 user.user_data.task = updated_task  # 完全替换字典触发数据库更新
-                print("删除了任务：", ", ".join(set(task.keys()) - set(updated_task.keys())))
 
             db.session.commit()  # 提交数据库事务
             return redirect(url_for('index'))
         except Exception as e:
             db.session.rollback()  # 回滚事务
-            print(f"数据库错误: {str(e)}")  # 记录详细错误信息
             return render_template('error.html', type=f"数据库错误: {str(e)}")
     else:
         return render_template('error.html', type="参数错误或参数不符合要求")
@@ -490,7 +476,6 @@ def delete_account_submit():
         return redirect(url_for('index'))
     except Exception as e:
         db.session.rollback()
-        print(f"注销错误: {str(e)}")
         return render_template('error.html', type="注销失败")
 
 
