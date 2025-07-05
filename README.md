@@ -26,8 +26,8 @@
    Linux:
 
    ```bash
-   export DATA = 'sqlite:///data.db'
-   export KEY = 'your_secret_key'
+   export DATA='sqlite:///data.db'
+   export KEY='your_secret_key'
    ```
 
    Windows PowerShell:
