@@ -1,0 +1,101 @@
+<!-- Copyright (C) 2025 陈子涵
+    Contact information:
+    Tel:18750386615
+    Email:2502820816@qq.com
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>关于本应用</title>
+</head>
+
+<body>
+    <a href="/">返回</a>
+    <h1 class="title">奖励自己</h1>
+    <p class="slogan">努力累了,也别忘了好好奖励一下自己。</p>
+    <b>这是一个在Github上以GPL v3协议开源的项目，<a href="https://github.com/reward-oneself/reward_oneself">项目地址</a></b>
+    <div class="section">
+        <h2>介绍</h2>
+        <p>你是否经常感到自己在努力工作或学习后，却忘记了给自己一些应有的奖励？“奖励自己”是一款专为那些勤奋工作、学习的人们设计的应用，它鼓励用户在完成既定目标后，适当地给予自己一些奖励，以保持动力和幸福感。</p>
+    </div>
+
+    <div class="section">
+        <h2>核心功能</h2>
+        <ul>
+            <li><strong>努力表格：</strong>
+                用户可以列出自己的任务或目标，例如完成一项项目、读完一本书或是坚持健身一个月。每完成一项任务，用户便可以在该表格记录并获取相应的积分。这些积分代表了你的努力和成就。
+            </li>
+            <li><strong>奖励表格：</strong>
+                一旦积累了足够的积分，用户就可以在这个表格中选择兑换之前设定好的奖励。所有的奖励都是由用户自己定义的，这可以是一次短途旅行、一顿美餐、一个悠闲的下午茶时光等。平台不直接提供物质奖励，而是鼓励用户自行实现这些小确幸。
+            </li>
+            <li><strong>积分系统：</strong> 积分的获取并不容易，需要用户真正付出努力和时间去完成任务。这样的设置是为了保证奖励的价值，防止奖励变得过于容易得到而失去了激励的意义。</li>
+            <li><strong>个性化设置：</strong> 用户可以根据自身情况设定奖励难度，比如如果奖励是允许自己20分钟的游戏时间，那么平时应该坚持戒网，以确保这种奖励对自己有足够的吸引力。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>优先级计算规则</h2>
+        <p>为了帮助用户更好地管理任务，应用引入了任务优先级的概念。每个任务的优先级是根据以下几个因素综合计算得出的：</p>
+
+        <h3>重要性</h3>
+        <p>用户可以选择任务的重要性，范围为0到5，其中：</p>
+        <ul>
+            <li>0表示不重要</li>
+            <li>3表示重要</li>
+            <li>4表示很重要</li>
+            <li>5表示非常重要（对应无穷大），建议用于表示不可抗任务（如上班上学）</li>
+        </ul>
+
+        <h3>紧急度</h3>
+        <p>用户可以选择任务的紧急程度，范围为1到3，其中：</p>
+        <ul>
+            <li>1表示不紧急</li>
+            <li>2表示较紧急</li>
+            <li>3表示紧急</li>
+        </ul>
+
+        <h3>价值</h3>
+        <p>用户可以选择任务的价值，范围为1到3，其中：</p>
+        <ul>
+            <li>1表示低价值</li>
+            <li>2表示中价值</li>
+            <li>3表示高价值</li>
+        </ul>
+
+        <h3>时间</h3>
+        <p>用户需要输入完成任务所需的时间，单位为分钟。</p>
+
+        <h3>优先级的计算公式如下</h3>
+        <p class="formula"><strong>优先级 = 重要性 × 4 + 紧急度 × 2 + 价值 × 3 - 时间 ÷ 10</strong></p>
+
+        <p class="important-note">特别地，如果任务被标记为“非常重要”，则其优先级为无穷大（即最高优先级）。</p>
+
+        <p>通过这种方式，用户可以更加直观地了解哪些任务是最值得优先处理的，从而提高工作效率和生活质量。</p>
+    </div>
+
+    <div class="section">
+        <h2>特别鸣谢</h2>
+        <p>本作品的图标和背景图片是<a href="https://www.pexels.com/zh-cn/photo/46274/" target="_blank">在白色表面选择性聚焦摄影上打开的书</a></p>
+        <p>感谢无版权图片素材提供网站：<a href="https://pixabay.com/" target="_blank">pixabay</a>和摄影师<a
+                href="https://www.pexels.com/zh-cn/@caio/" target="_blank">Caio</a></p>
+    </div>
+</body>
+
+</html>

@@ -186,6 +186,10 @@ def index():
     return render_template('index.html', username=user.username, point=point_value, reward=reward_text,
                            task=task_text)
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 
 @app.route('/point')
 @flask_login.login_required
