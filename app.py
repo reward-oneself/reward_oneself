@@ -21,11 +21,12 @@ from typing import Optional, Dict, Any  # 添加缺失的类型导入
 
 import flask_login
 import os
+import requests
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect  # 新增CSRF扩展
+from flask_wtf.csrf import CSRFProtect,generate_csrf # 新增CSRF扩展
 
 app = Flask(__name__)
 data = os.environ.get('DATA', 'sqlite:///data.db')
@@ -156,19 +157,38 @@ def index():
     user = flask_login.current_user
     db.session.refresh(user.user_data)
     point_value = user.user_data.point
-    rewards = user.user_data.reward
-    tasks = user.user_data.task
+    reward = user.user_data.reward
+    task = user.user_data.task
 
-    rewards_text = ""
-    for name, value in rewards.items():
-        rewards_text += f"<tr><td><a href='point?point_change=-{value}&name={name}'>{name}</a></td><td>{value}</td></tr>"
+    reward_text = ""
+    for name, value in reward.items():
+        reward_text += f"<tr><td><a href='point?point_change=-{value}&name={name}'>{name}</a></td><td>{value}</td></tr>"
+    def sort_task():
+        task_name_priority = {}
+        for name,value in task.items():
+            for n,v in value.items():
+                if n == 'priority':
+                    if v == 'max':
+                        task_name_priority[name] = float('inf')
+                    else:
+                        task_name_priority[name] = v
+                    break
+        sorted_task = sorted(task_name_priority.items(), key=lambda x: x[1] ,reverse=True) #正序排列，返回包含元组的列表
+        sort_task_name_list = []
+        for i in sorted_task:
+            sort_task_name_list.append(i[0]) #将元组中的元素取出
+        return sort_task_name_list
+    task_text = ""
+    sort_task_name_list = sort_task()
+    for i in sort_task_name_list:
+        task_data = task.get(i)
+        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"            
+    return render_template('index.html', username=user.username, point=point_value, reward=reward_text,
+                           task=task_text)
 
-    tasks_text = ""
-    for name, value in tasks.items():
-        tasks_text += f"<tr><td><a href='point?point_change={value}&name={name}'>{name}</a></td><td>{value}</td></tr>"
-
-    return render_template('index.html', username=user.username, point=point_value, rewards=rewards_text,
-                           tasks=tasks_text)
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 
 @app.route('/point')
@@ -177,59 +197,77 @@ def point():
     user = flask_login.current_user
     point_change = request.args.get('point_change')
     name = request.args.get('name')
+    repeat = request.args.get('repeat')
 
-    if point_change and name:
-        try:
-            point_change = int(point_change)
-        except ValueError:
-            return render_template('error.html', type="数据格式错误")
-
-        updated_point = user.user_data.point + point_change
-        if updated_point >= 0:
-            user.user_data.point = updated_point
-            db.session.commit()
-            result = "成功"
+    if not point_change and name:
+        return render_template('error.html', type="参数错误")
+    
+    try:
+        point_change = int(point_change)
+        # 一样的坑
+        if repeat == 'True':
+            repeat = True
+        elif repeat == 'False':
+            repeat = False
         else:
-            result = "失败，积分不足"
+            repeat = True
+    except ValueError:
+        return render_template('error.html', type="数据格式错误")
 
-        return render_template('point.html',
-                               result=result,
-                               name=name,
-                               point=user.user_data.point)
+
+    updated_point = user.user_data.point + point_change
+    if updated_point >= 0:
+        user.user_data.point = updated_point
+        db.session.commit()
+        result = "成功"
     else:
-        return render_template('error.html', type="参数错误")
+        result = "失败，积分不足"
 
 
-@app.route('/add_new')
+    if not repeat:
+        try:
+            task = dict(user.user_data.task)
+            del task[name]
+            user.user_data.task = task
+            db.session.commit()
+            result = "成功。因为没有重复，所以该任务已自动删除"
+        except:
+            result = "兑换成功，但是因为删除任务时出错，该任务没有被删除"
+    
+    
+    return render_template('point.html',
+                            result=result,
+                            name=name,
+                            point=user.user_data.point)
+
+
+@app.route('/add_reward')
 @flask_login.login_required
-def add_new():
+def add_reward():
     """
-    渲染添加新任务或奖励的页面，根据提供的类型参数。
+    渲染添加新奖励的页面
     """
-    type_name = request.args.get('type')
-    if type_name:
-        return render_template('add_new.html', type=type_name)
-    else:
-        return render_template('error.html', type="参数错误")
-
-
-@app.route('/add_new_submit', methods=['POST', 'GET'])
+    return render_template('add_new_reward.html')
+@app.route('/add_task')
 @flask_login.login_required
-def add_new_submit():
+def add_task():
     """
-    处理添加新任务/奖励的提交请求
+    渲染添加新任务的页面
+    """
+    return render_template('add_new_task.html')
+
+
+@app.route('/add_reward_submit', methods=['POST'])
+@flask_login.login_required
+def add_reward_submit():
+    """
+    处理添加新奖励的提交请求
     业务流程：
-    1. 验证参数有效性（名称、类型、积分值）
-    2. 创建对应数据的副本并更新
+    1. 验证参数有效性（名称、积分值）
+    2. 创建奖励数据副本并更新
     3. 完全替换原有JSON字段触发数据库更新
     4. 提交事务或在出错时回滚
-    
-    安全要求：
-    - 必须登录才能访问
-    - 参数验证防止无效数据写入
-    - 异常处理保证数据一致性
     """
-    type_name = request.args.get('type')
     name = request.form.get('name')
     points = request.form.get('points')
 
@@ -238,28 +276,106 @@ def add_new_submit():
     except ValueError:
         return render_template('error.html', type="数据格式错误")
 
-    if type_name and changed_points > 0:
-        user = flask_login.current_user
-
-        if type_name == "reward":
-            # 创建当前奖励数据的副本并完全替换原有字段
-            rewards = dict(user.user_data.reward)  # 创建新对象确保SQLAlchemy检测到变化
-            rewards[name] = changed_points
-            user.user_data.reward = rewards  # 完全替换字典触发数据库更新
-        else:
-            # 创建当前任务数据的副本并完全替换原有字段
-            tasks = dict(user.user_data.task)  # 创建新对象确保SQLAlchemy检测到变化
-            tasks[name] = changed_points
-            user.user_data.task = tasks  # 完全替换字典触发数据库更新
-        try:
-            db.session.commit()  # 提交数据库事务
-            return redirect(url_for('index'))
-        except Exception as e:
-            db.session.rollback()  # 回滚事务
-            print(f"数据库错误: {str(e)}")  # 记录详细错误信息
-            return render_template('error.html', type=f"数据库错误: {str(e)}")
-    else:
+    if not changed_points > 0:
         return render_template('error.html', type="参数错误或参数不符合要求")
+
+
+    user = flask_login.current_user
+    # 创建当前奖励数据的副本并完全替换原有字段
+    reward = dict(user.user_data.reward)  # 创建新对象确保SQLAlchemy检测到变化
+    reward[name] = changed_points
+    user.user_data.reward = reward  # 完全替换字典触发数据库更新
+
+
+    try:
+        db.session.commit()  # 提交数据库事务
+        return redirect(url_for('index'))
+    except Exception as e:
+        db.session.rollback()  # 回滚事务
+        return render_template('error.html', type=f"数据库错误")
+
+
+@app.route('/add_task_submit', methods=['POST'])
+@flask_login.login_required
+def add_task_submit():
+    """
+    处理添加新任务的提交请求
+    业务流程：
+    1. 验证参数有效性（名称、积分值、时间、重要性等）
+    2. 创建任务数据副本并更新
+    3. 完全替换原有JSON字段触发数据库更新
+    4. 提交事务或在出错时回滚
+    """
+    name = request.form.get('name')
+    points = request.form.get('points')
+    time = request.form.get('time')
+    importance = request.form.get('importance')
+    value = request.form.get('value')
+    urgent = request.form.get('urgent')
+    repeat = request.form.get('repeat')
+
+    def check():
+        global changed_points
+        global changed_time
+        global changed_value
+        global changed_urgent
+        global changed_repeat
+        try:
+            changed_points = int(points)
+            changed_time = int(time)
+            changed_value = int(value)
+            changed_urgent = int(urgent)
+            # 踩过的坑：这里的转化不能用bool()，Python 中所有非空字符串都会被视为 True，与字符串内容无关。
+            if repeat == "True":
+                changed_repeat = True
+            else:
+                changed_repeat = False
+        except:
+            return False
+        else:
+            return(
+                not name is None
+                and name != ''
+                and changed_points > 0
+                and changed_time > 0
+                and changed_value > 0
+                and changed_value <= 3
+                and changed_urgent > 0
+                and changed_urgent <= 3
+                and importance in ['0','3','4','max']
+            )
+
+    if not check():
+        return render_template('error.html', type="参数错误或参数不符合要求")
+    
+    user = flask_login.current_user
+    # 创建当前任务数据的副本并完全替换原有字段
+    task = dict(user.user_data.task)  # 创建新对象确保SQLAlchemy检测到变化
+    # 构建任务对象
+
+
+    if importance == 'max':
+        priority = 'max'
+    else:
+        priority = round(int(importance)*4 + changed_urgent*2 + changed_value*3 - changed_time/10)
+
+    task[name] = {
+        'points': changed_points,
+        'time': changed_time,
+        'priority' : priority,
+        'repeat': changed_repeat
+    }
+
+
+    user.user_data.task = task  # 完全替换字典触发数据库更新
+
+
+    try:
+        db.session.commit()  # 提交数据库事务
+        return redirect(url_for('index'))
+    except:
+        db.session.rollback()  # 回滚事务
+        return render_template('error.html', type=f"数据库错误")
 
 
 @app.route('/remove')
@@ -269,20 +385,22 @@ def remove():
     渲染移除任务或奖励的页面，根据提供的类型参数，并列出所有可移除的项。
     """
     type_name = request.args.get('type')
-    if type_name:
-        user = flask_login.current_user
-
-        if type_name == "reward":
-            items = user.user_data.reward
-        else:
-            items = user.user_data.task
-
-        text = ""
-        for name in items.keys():
-            text += f"<input type='checkbox' name='{name}'><label>{name}</label><br>"
-        return render_template('remove.html', type=type_name, text=text)
-    else:
+    if not type_name:
         return render_template('error.html', type="参数错误")
+
+
+    user = flask_login.current_user
+
+    if type_name == "reward":
+        items = user.user_data.reward
+    else:
+        items = user.user_data.task
+
+    text = ""
+    for name in items.keys():
+        text += f"<input type='checkbox' name='{name}'><label>{name}</label><br>"
+    return render_template('remove.html', type=type_name, text=text)
+        
 
 
 @app.route('/remove_submit', methods=['POST', 'GET'])
@@ -304,39 +422,37 @@ def remove_submit() -> str:
     type_name: Optional[str] = request.args.get('type')
     form_data: Dict[str, str] = request.form.to_dict()
 
-    if type_name:
-        user = flask_login.current_user
-
-        try:
-            if type_name == "reward":
-                # 创建当前奖励数据的副本并完全替换原有字段
-                rewards: Dict[str, Any] = dict(user.user_data.reward)  # 创建新对象确保SQLAlchemy检测到变化
-                # 保留不在form_data中的项
-                updated_rewards: Dict[str, Any] = {
-                    name: value for name, value in rewards.items()
-                    if name not in form_data
-                }
-                user.user_data.reward = updated_rewards  # 完全替换字典触发数据库更新
-                print("删除了奖励：", ", ".join(set(rewards.keys()) - set(updated_rewards.keys())))
-            else:
-                # 创建当前任务数据的副本并完全替换原有字段
-                tasks: Dict[str, Any] = dict(user.user_data.task)  # 创建新对象确保SQLAlchemy检测到变化
-                # 保留不在form_data中的项
-                updated_tasks: Dict[str, Any] = {
-                    name: value for name, value in tasks.items()
-                    if name not in form_data
-                }
-                user.user_data.task = updated_tasks  # 完全替换字典触发数据库更新
-                print("删除了任务：", ", ".join(set(tasks.keys()) - set(updated_tasks.keys())))
-
-            db.session.commit()  # 提交数据库事务
-            return redirect(url_for('index'))
-        except Exception as e:
-            db.session.rollback()  # 回滚事务
-            print(f"数据库错误: {str(e)}")  # 记录详细错误信息
-            return render_template('error.html', type=f"数据库错误: {str(e)}")
-    else:
+    if not type_name:
         return render_template('error.html', type="参数错误或参数不符合要求")
+    user = flask_login.current_user
+
+    def instead_data(data,form_data = form_data):
+
+        # 创建新对象确保SQLAlchemy检测到变化
+        copy: Dict[str, Any] = dict(data)
+        # 保留不在form_data中的项
+        updated_data: Dict[str, Any] = {
+            name: value for name, value in copy.items()
+            if name not in form_data
+        }
+        
+        return updated_data
+
+    try:
+        if type_name == "reward":
+            data = user.user_data.reward
+            user.user_data.reward = instead_data(data)
+        else:
+            data = user.user_data.task
+            user.user_data.task = instead_data(data)
+
+        db.session.commit()  # 提交数据库事务
+
+        return redirect(url_for('index'))
+    except:
+        db.session.rollback()  # 回滚事务
+        return render_template('error.html', type=f"数据库错误")
+        
 
 
 @app.route('/delete_account')
@@ -375,7 +491,6 @@ def delete_account_submit():
         return redirect(url_for('index'))
     except Exception as e:
         db.session.rollback()
-        print(f"注销错误: {str(e)}")
         return render_template('error.html', type="注销失败")
 
 
@@ -397,4 +512,4 @@ if __name__ == '__main__':
     - 监听所有网络接口（便于容器部署）
     - 使用默认端口5000
     """
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=8080,debug=True)

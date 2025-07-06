@@ -47,10 +47,10 @@
                 <h3>分值</h3>
             </td>
         </tr>
-        {{rewards|safe}}
+        {{reward|safe}}
         <tr>
             <td>
-                <a href="add_new?type=reward">添加新奖励</a>
+                <a href="add_reward">添加新奖励</a>
             </td>
             <td>
                 <a href="remove?type=reward">删除奖励</a>
@@ -66,17 +66,29 @@
             <td>
                 <h3>分值</h3>
             </td>
-        </tr>
-        {{tasks|safe}}
-        <tr>
             <td>
-                <a href="add_new?type=task">添加新任务</a>
+                <h3>所需时间</h3>
             </td>
             <td>
+                <h3>优先级</h3>
+            </td>
+            <td>
+                <h3>重复 </h3>
+            </td>
+        </tr>
+        {{task|safe}}
+        <tr>
+            <td colspan="3">
+                <a href="add_task">添加新任务</a>
+            </td>
+            <td colspan="2">
                 <a href="remove?type=task">删除任务</a>
             </td>
         </tr>
     </table>
 </div>
+<footer class="footer">
+    <p style="text-align: center;"><a href="/about">关于本应用</a></p>
+</footer>
 </body>
 </html>
