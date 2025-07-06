@@ -1,3 +1,5 @@
+![软件图标](https://foruda.gitee.com/images/1751104375576115618/0a2c3c96_12357965.jpeg)
+
 # Reward Yourself
 
 **Software Name:** Reward Yourself
@@ -90,3 +92,9 @@ This approach allows users to more intuitively understand which tasks deserve to
 5. Access the app: Enter `localhost:8080` in your browser (if using local development server)
 
 Through this app, we hope users can realize that while working or studying hard, they should not ignore caring for and rewarding themselves. Remember, appropriate rest and rewards can make you go further. Download "Reward Yourself" now and start your rewarding journey!
+
+## Special Thanks
+
+The icons and background images of this work are ["Open Book on Selective Focus Photography on a White Surface"](https://www.pexels.com/zh-cn/photo/46274/).
+
+Thanks to the websites that provide copyright-free image materials: [pixabay](https://pixabay.com/) and the photographer [Caio](https://www.pexels.com/
