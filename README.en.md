@@ -64,8 +64,9 @@ This approach allows users to more intuitively understand which tasks deserve to
    Linux:
 
    ```bash
-   export DATA = 'sqlite:///data.db'
-   export KEY = 'your_secret_key'
+   export DATA='sqlite:///data.db'
+   export KEY='your_secret_key'
+   export DEVELOPMENT=True # Add this line if running in local development environment
    ```
 
    Windows PowerShell:
@@ -73,6 +74,7 @@ This approach allows users to more intuitively understand which tasks deserve to
    ```powershell
    $env:DATA = 'sqlite:///data.db'
    $env:KEY = 'your_secret_key'
+   $env:DEVELOPMENT = True # Add this line if running in local development environment
    ```
 3. Initialize the database:
 
@@ -85,6 +87,6 @@ This approach allows users to more intuitively understand which tasks deserve to
    # For local development environment only
    python app.py
    ```
-5. Access the app: Enter `localhost:80` in your browser.
+5. Access the app: Enter `localhost:8080` in your browser (if using local development server)
 
 Through this app, we hope users can realize that while working or studying hard, they should not ignore caring for and rewarding themselves. Remember, appropriate rest and rewards can make you go further. Download "Reward Yourself" now and start your rewarding journey!

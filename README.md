@@ -69,6 +69,7 @@
    ```bash
    export DATA='sqlite:///data.db'
    export KEY='your_secret_key'
+   export DEVELOPMENT=True # 若需要在本地开发环境运行，请添加此行
    ```
 
    Windows PowerShell:
@@ -76,6 +77,7 @@
    ```powershell
    $env:DATA = 'sqlite:///data.db'
    $env:KEY = 'your_secret_key'
+   $env:DEVELOPMENT = True # 如果需要在本地开发环境运行，请添加此行
    ```
 3. 初始化数据库：
 
@@ -88,6 +90,6 @@
    # 仅在本地开发环境使用
    python app.py
    ```
-5. 访问应用：在浏览器中输入 `localhost:80`
+5. 访问应用：在浏览器中输入 `localhost:8080` (若您使用本地开发服务器运行)
 
 通过这款应用，我们希望用户能够意识到，努力工作或学习的同时，也不应忽略了对自己的关爱和奖励。记住，适当的休息和奖励，能让你走得更远。立即下载“奖励自己”，开始你的奖励之旅吧！
