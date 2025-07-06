@@ -422,15 +422,8 @@ def remove_submit() -> str:
         return render_template('error.html', type="参数错误或参数不符合要求")
     user = flask_login.current_user
 
+    def instead_data(data,form_data = form_data):
 
-    try:
-        if type_name == "reward":
-            data = user.user_data.reward
-        else:
-            data = user.user_data.task
-
-
-        # 创建当前数据的副本并完全替换原有字段
         # 创建新对象确保SQLAlchemy检测到变化
         copy: Dict[str, Any] = dict(data)
         # 保留不在form_data中的项
@@ -438,8 +431,17 @@ def remove_submit() -> str:
             name: value for name, value in copy.items()
             if name not in form_data
         }
-        # 完全替换字典触发数据库更新
-        data = updated_data  
+        
+        return updated_data
+
+    try:
+        if type_name == "reward":
+            data = user.user_data.reward
+            user.user_data.reward = instead_data(data)
+        else:
+            data = user.user_data.task
+            user.user_data.task = instead_data(data)
+
         db.session.commit()  # 提交数据库事务
 
         return redirect(url_for('index'))
