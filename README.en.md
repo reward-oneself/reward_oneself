@@ -95,6 +95,8 @@ Through this app, we hope users can realize that while working or studying hard,
 
 ## Special Thanks
 
+- [Hitokoto Service](https://hitokoto.cn/) for providing quote support
+
 The icons and background images of this work are ["Open Book on Selective Focus Photography on a White Surface"](https://www.pexels.com/zh-cn/photo/46274/).
 
 Thanks to the websites that provide copyright-free image materials: [pixabay](https://pixabay.com/) and the photographer [Caio](https://www.pexels.com/

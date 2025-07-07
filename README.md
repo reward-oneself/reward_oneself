@@ -98,6 +98,8 @@
 
 ## 特别鸣谢
 
-本作品的图标和背景图片是[在白色表面选择性聚焦摄影上打开的书](https://www.pexels.com/zh-cn/photo/46274/)
+- [一言服务](https://hitokoto.cn/) 提供文案支持
+
+- 本作品的图标和背景图片是[在白色表面选择性聚焦摄影上打开的书](https://www.pexels.com/zh-cn/photo/46274/)
 
 感谢无版权图片素材提供网站：[pixabay](https://pixabay.com/)和摄影师[Caio](https://www.pexels.com/zh-cn/@caio/)
