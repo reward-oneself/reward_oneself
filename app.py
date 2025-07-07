@@ -19,20 +19,35 @@
 
 from typing import Optional, Dict, Any  # 添加缺失的类型导入
 
+from hitokoto import get_hitokoto
 import flask_login
-import os
-import requests
-from flask import Flask, render_template, request, redirect, url_for, flash
+import sys
+import json
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect,generate_csrf # 新增CSRF扩展
-
+from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
-data = os.environ.get('DATA', 'sqlite:///data.db')
-key = os.environ.get('KEY', 'key')
-app.config['SQLALCHEMY_DATABASE_URI'] = data
-app.config['SECRET_KEY'] = key  # 建议通过环境变量强制配置
+try:
+    with open('settings.json', 'r', encoding='utf-8') as f:
+        settings = json.load(f)
+        DATA = settings['data']
+        KEY = settings['key']
+        DEVELOPMENT = settings['development']
+except FileNotFoundError:
+    with open('settings.json', 'w', encoding='utf-8') as f:
+        settings = {
+            "data": "sqlite:///data.db",
+            "key": "key",
+            "development": "True",
+            "hitokoto_url": 'https://v1.hitokoto.cn/'
+        }
+        json.dump(settings, f, ensure_ascii=False, indent=4)
+        sys.exit()
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATA
+app.config['SECRET_KEY'] = KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -42,6 +57,7 @@ csrf = CSRFProtect(app)
 # 初始化LoginManager
 login_manager = LoginManager(app)
 
+# 初始化Flask-Migrate
 def init_db():
     db.create_all()  # 创建所有表
 
@@ -85,7 +101,13 @@ class UserData(db.Model):
     reward = db.Column(db.JSON, nullable=False, default=lambda: {})
     point = db.Column(db.Integer, nullable=False, default=0)
     task = db.Column(db.JSON, nullable=False, default=lambda: {})
+    love = db.Column(db.String(60), nullable=False, default="")
     user = db.relationship('User', backref=db.backref('user_data', uselist=False, cascade='all, delete-orphan'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico')
 
 
 @app.route('/login')
@@ -182,9 +204,39 @@ def index():
     sort_task_name_list = sort_task()
     for i in sort_task_name_list:
         task_data = task.get(i)
-        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"            
-    return render_template('index.html', username=user.username, point=point_value, reward=reward_text,
+        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"
+
+    love = user.user_data.love
+    hitokoto = get_hitokoto(love)            
+    return render_template('index.html', username=user.username,point=point_value,hitokoto=hitokoto,reward=reward_text,
                            task=task_text)
+
+@app.route('/hitokoto')
+@flask_login.login_required
+def hitokoto():
+    return render_template('hitokoto.html')
+
+@app.route('/hitokoto_submit',methods=['POST'])
+@flask_login.login_required
+def hitokoto_submit():
+    hitokoto = request.form.to_dict()
+    hitokoto_text = ""
+    for k,v in hitokoto.items():
+        if k != "csrf_token":
+            hitokoto_text = hitokoto_text + v 
+    
+    user = flask_login.current_user
+    db.session.refresh(user.user_data)
+
+    user.user_data.love = hitokoto_text
+
+    try:
+        db.session.commit()
+        return redirect(url_for('index'))
+
+    except:
+        db.session.rollback()
+        return render_template('error.html', type="数据库错误")
 
 @app.route('/about')
 def about():
@@ -512,4 +564,8 @@ if __name__ == '__main__':
     - 监听所有网络接口（便于容器部署）
     - 使用默认端口5000
     """
-    app.run(host='0.0.0.0', port=8080,debug=True)
+    if DEVELOPMENT == 'True':
+        app.run(host='0.0.0.0', port=8080,debug=True)
+    else:
+        print("生产环境下不宜使用开发服务器启动，请使用gunicorn启动程序")
+        print('程序未启动')
