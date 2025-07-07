@@ -65,41 +65,25 @@
    ```bash
    pip install -r requirements.txt
    ```
-2. 配置环境变量：
-   Linux:
+2. 初始化数据库：
 
-   ```bash
-   export DATA='sqlite:///data.db'
-   export KEY='your_secret_key'
-   export DEVELOPMENT=True # 若需要在本地开发环境运行，请添加此行
-   ```
-
-   Windows PowerShell:
-
-   ```powershell
-   $env:DATA = 'sqlite:///data.db'
-   $env:KEY = 'your_secret_key'
-   $env:DEVELOPMENT = True # 如果需要在本地开发环境运行，请添加此行
-   ```
-3. 初始化数据库：
-
-   ```bash
+```bash
    python init.py
-   ```
-4. 运行应用：
+```
 
-   ```bash
-   # 仅在本地开发环境使用
-   python app.py
-   ```
-5. 访问应用：在浏览器中输入 `localhost:8080` (若您使用本地开发服务器运行)
+3. 运行应用：
+
+```bash
+# 仅在本地开发环境使用
+python app.py
+```
+
+4. 访问应用：在浏览器中输入 `localhost:8080` (若您使用本地开发服务器运行)
+   **如果您是第一次运行，程序创建完数据文件后会自动结束。再次启动即可**
 
 通过这款应用，我们希望用户能够意识到，努力工作或学习的同时，也不应忽略了对自己的关爱和奖励。记住，适当的休息和奖励，能让你走得更远。立即下载“奖励自己”，开始你的奖励之旅吧！
 
 ## 特别鸣谢
 
 - [一言服务](https://hitokoto.cn/) 提供文案支持
-
-- 本作品的图标和背景图片是[在白色表面选择性聚焦摄影上打开的书](https://www.pexels.com/zh-cn/photo/46274/)
-
-感谢无版权图片素材提供网站：[pixabay](https://pixabay.com/)和摄影师[Caio](https://www.pexels.com/zh-cn/@caio/)
+- 本作品的图标和背景图片是[在白色表面选择性聚焦摄影上打开的书](https://www.pexels.com/zh-cn/photo/46274/)，感谢无版权图片素材提供网站：[pixabay](https://pixabay.com/)和摄影师[Caio](https://www.pexels.com/zh-cn/@caio/)
