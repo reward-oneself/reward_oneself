@@ -1,0 +1,90 @@
+<!-- Copyright (C) 2025 陈子涵
+    Contact information:
+    Tel:18750386615
+    Email:2502820816@qq.com
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>更改一言喜好</title>
+</head>
+
+<body>
+    <h1>更改一言喜好</h1>
+    <b>不选与全选效果一致</b>
+    <form action="/hitokoto_submit" method="post">
+        <div style="margin: 20px;">
+            <div>
+                <input type="checkbox" name="love" id="A" value="?c=a&">
+                <label for="A">动画</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="B" value="?c=b&">
+                <label for="B">漫画</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="C" value="?c=c&">
+                <label for="C">游戏</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="D" value="?c=d&">
+                <label for="D">文学</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="E" value="?c=e&">
+                <label for="E">原创</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="F" value="?c=f&">
+                <label for="F">来自网络</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="G" value="?c=g&">
+                <label for="G">其他</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="H" value="?c=h&">
+                <label for="H">影视</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="I" value="?c=i&">
+                <label for="I">诗词</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="J" value="?c=j&">
+                <label for="J">网易云</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="K" value="?c=k&">
+                <label for="K">哲学</label>
+            </div>
+            <div>
+                <input type="checkbox" name="love" id="L" value="?c=l&">
+                <label for="L">抖机灵</label>
+            </div>
+        </div>
+        <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary">提交</button>
+    </form>
+</body>
+
+</html>

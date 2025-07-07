@@ -19,6 +19,7 @@
 
 from typing import Optional, Dict, Any  # 添加缺失的类型导入
 
+from hitokoto import get_hitokoto
 import flask_login
 import os
 import requests
@@ -26,7 +27,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect,generate_csrf # 新增CSRF扩展
+from flask_wtf.csrf import CSRFProtect, generate_csrf  # 新增CSRF扩展
 
 app = Flask(__name__)
 data = os.environ.get('DATA', 'sqlite:///data.db')
@@ -42,6 +43,7 @@ csrf = CSRFProtect(app)
 # 初始化LoginManager
 login_manager = LoginManager(app)
 
+# 初始化Flask-Migrate
 def init_db():
     db.create_all()  # 创建所有表
 
@@ -85,8 +87,8 @@ class UserData(db.Model):
     reward = db.Column(db.JSON, nullable=False, default=lambda: {})
     point = db.Column(db.Integer, nullable=False, default=0)
     task = db.Column(db.JSON, nullable=False, default=lambda: {})
+    love = db.Column(db.String(60), nullable=False, default="")
     user = db.relationship('User', backref=db.backref('user_data', uselist=False, cascade='all, delete-orphan'))
-
 
 @app.route('/login')
 def login():
@@ -182,9 +184,39 @@ def index():
     sort_task_name_list = sort_task()
     for i in sort_task_name_list:
         task_data = task.get(i)
-        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"            
-    return render_template('index.html', username=user.username, point=point_value, reward=reward_text,
+        task_text += f"<tr><td><a href='point?point_change={task_data['points']}&name={i}&repeat={task_data['repeat']}'>{i}</a></td><td>{task_data['points']}</td><td>{task_data['time']}</td><td>{task_data['priority']}</td><td>{task_data['repeat']}</td></tr>"
+
+    love = user.user_data.love
+    hitokoto = get_hitokoto(love)            
+    return render_template('index.html', username=user.username,point=point_value,hitokoto=hitokoto,reward=reward_text,
                            task=task_text)
+
+@app.route('/hitokoto')
+@flask_login.login_required
+def hitokoto():
+    return render_template('hitokoto.html')
+
+@app.route('/hitokoto_submit',methods=['POST'])
+@flask_login.login_required
+def hitokoto_submit():
+    hitokoto = request.form.to_dict()
+    hitokoto_text = ""
+    for k,v in hitokoto.items():
+        if k != "csrf_token":
+            hitokoto_text = hitokoto_text + v 
+    
+    user = flask_login.current_user
+    db.session.refresh(user.user_data)
+
+    user.user_data.love = hitokoto_text
+
+    try:
+        db.session.commit()
+        return redirect(url_for('index'))
+
+    except:
+        db.session.rollback()
+        return render_template('error.html', type="数据库错误")
 
 @app.route('/about')
 def about():
