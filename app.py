@@ -21,19 +21,33 @@ from typing import Optional, Dict, Any  # 添加缺失的类型导入
 
 from hitokoto import get_hitokoto
 import flask_login
-import os
-import requests
+import sys
+import json
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect, generate_csrf  # 新增CSRF扩展
-
+from flask_wtf.csrf import CSRFProtect
 app = Flask(__name__)
-data = os.environ.get('DATA', 'sqlite:///data.db')
-key = os.environ.get('KEY', 'key')
-app.config['SQLALCHEMY_DATABASE_URI'] = data
-app.config['SECRET_KEY'] = key  # 建议通过环境变量强制配置
+try:
+    with open('settings.json', 'r', encoding='utf-8') as f:
+        settings = json.load(f)
+        DATA = settings['data']
+        KEY = settings['key']
+        DEVELOPMENT = settings['development']
+except FileNotFoundError:
+    with open('settings.json', 'w', encoding='utf-8') as f:
+        settings = {
+            "data": "sqlite:///data.db",
+            "key": "key",
+            "development": "True",
+            "hitokoto_url": 'https://v1.hitokoto.cn/'
+        }
+        json.dump(settings, f, ensure_ascii=False, indent=4)
+        sys.exit()
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATA
+app.config['SECRET_KEY'] = KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -550,4 +564,8 @@ if __name__ == '__main__':
     - 监听所有网络接口（便于容器部署）
     - 使用默认端口5000
     """
-    app.run(host='0.0.0.0', port=8080,debug=True)
+    if DEVELOPMENT == 'True':
+        app.run(host='0.0.0.0', port=8080,debug=True)
+    else:
+        print("生产环境下不宜使用开发服务器启动，请使用gunicorn启动程序")
+        print('程序未启动')

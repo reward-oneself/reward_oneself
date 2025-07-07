@@ -1,11 +1,17 @@
 # 该程序由通义灵码生成，用于获取一言（hitokoto）的数据
 
 import requests
-import os
+import sys
 import json
 def get_hitokoto(love=""):
-    url = os.environ.get('URL', 'https://v1.hitokoto.cn/')
-    url = url + love
+    try:
+        with open("settings.json", "r", encoding="utf-8") as f:
+            settings = json.load(f)
+            HITOKOTO_URL = settings["hitokoto_url"]
+    except FileNotFoundError:
+        print("请先配置settings.json")
+        sys.exit()
+    url = HITOKOTO_URL + love
     response = requests.get(url)
     if response.status_code == 200:
         json_text = response.text
