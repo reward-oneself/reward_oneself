@@ -23,7 +23,7 @@ from hitokoto import get_hitokoto
 import flask_login
 import sys
 import json
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory ,flash
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
