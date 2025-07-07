@@ -23,7 +23,7 @@ from hitokoto import get_hitokoto
 import flask_login
 import os
 import requests
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -89,6 +89,12 @@ class UserData(db.Model):
     task = db.Column(db.JSON, nullable=False, default=lambda: {})
     love = db.Column(db.String(60), nullable=False, default="")
     user = db.relationship('User', backref=db.backref('user_data', uselist=False, cascade='all, delete-orphan'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico')
+
 
 @app.route('/login')
 def login():
