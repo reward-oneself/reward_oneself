@@ -1,5 +1,5 @@
 ![软件图标](https://foruda.gitee.com/images/1751104375576115618/0a2c3c96_12357965.jpeg)
-
+[CONTRIBUTING](.github/CONTRIBUTING.md)
 # 奖励自己
 
 **软件名称：** 奖励自己
