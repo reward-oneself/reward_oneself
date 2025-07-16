@@ -16,99 +16,111 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <!-- 添加移动端适配视口设置 -->
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
-    <title>添加新奖励或任务</title>
-</head>
-<body>
-<h1>添加</h1>
-<form action="/add_task_submit" method="POST">
-    <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-    <div style="margin: 10px;">
-        <label>名称：</label>
-        <input name="name" required type="text">
-    </div>
-    <div style="margin: 10px;">
-        <label>分值：</label>
-        <input min="1" name="points" required type="number">
-    </div>
-    <input name="entry_type" type="hidden" value="{{ entry_type }}">
-    <label for="time">所需时间</label>
-    <input id="time" type="number" class="text" name="time" min="0" required>
-   
-    <fieldset>
-      <legend>重要性</legend>
-      <div>
-        <input id="most_important" type="radio" name="importance" value="max" required>
-        <label for="most_important">特别重要</label>
-      </div>
-      <div>
-        <input id="very_important" type="radio" name="importance" value="4">
-        <label for="very_important">很重要</label>
-      </div>
-      <div>
-        <input id="important" type="radio" name="importance" value="3">
-        <label for="important">重要</label>
-      </div>
-      <div>
-        <input id="not_important" type="radio" name="importance" value="0">
-        <label for="not_important">不重要</label>
-      </div>
-    </fieldset>
+    <!DOCTYPE html>
+    <html lang="zh-CN">
 
-    <fieldset>
-      <legend>价值</legend>
-      <div>
-        <input id="most_value" type="radio" name="value" value="3" required>
-        <label for="most_value">高价值</label>
-      </div>
-      <div>
-        <input id="value" type="radio" name="value" value="2" required>
-        <label for="value">中价值</label>
-      </div>
-      <div>
-        <input id="not_value" type="radio" name="value" value="1" required>
-        <label for="not_value">低价值</label>
-        </input>
-      </div>
-      
-    </fieldset>
+    <head>
+        <meta charset="UTF-8">
+        <!-- 添加移动端适配视口设置 -->
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <title>添加新奖励或任务</title>
+    </head>
 
-    <fieldset>
-      <legend>紧急</legend>
-      <div>
-        <input id="most_urgent" type="radio" name="urgent" value="3" required>
-        <label for="most_urgent">很紧急</label>
-      </div>
-      <div>
-        <input id="urgent" type="radio" name="urgent" value="2" required>
-        <label for="urgent">紧急</label>
-      </div>
-      <div>
-        <input id="not_urgent" type="radio" name="urgent" value="1" required>
-        <label for="not_urgent">不紧急</label>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>重复</legend>
-      <div>
-        <input id="most_repeat" type="radio" name="repeat" value="True" required>
-        <label for="most_repeat">重复</label>
-      </div>
-      <div>
-        <input id="not_repeat" type="radio" name="repeat" value="False" required>
-        <label for="not_repeat">不重复</label>
-      </div>
-    </fieldset>
-    <button type="submit">
-        提交
-    </button>
-</form>
-</body>
-</html>
+    <body>
+        <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <h1>添加</h1>
+        <form action="/add_task_submit" method="POST">
+            <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <div style="margin: 10px;">
+                <label>名称：</label>
+                <input name="name" required type="text">
+            </div>
+            <div style="margin: 10px;">
+                <label>分值：</label>
+                <input min="1" name="points" required type="number">
+            </div>
+            <input name="entry_type" type="hidden" value="{{ entry_type }}">
+            <label for="time">所需时间</label>
+            <input id="time" type="number" class="text" name="time" min="0" required>
+
+            <fieldset>
+                <legend>重要性</legend>
+                <div>
+                    <input id="most_important" type="radio" name="importance" value="max" required>
+                    <label for="most_important">特别重要</label>
+                </div>
+                <div>
+                    <input id="very_important" type="radio" name="importance" value="4">
+                    <label for="very_important">很重要</label>
+                </div>
+                <div>
+                    <input id="important" type="radio" name="importance" value="3">
+                    <label for="important">重要</label>
+                </div>
+                <div>
+                    <input id="not_important" type="radio" name="importance" value="0">
+                    <label for="not_important">不重要</label>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>价值</legend>
+                <div>
+                    <input id="most_value" type="radio" name="value" value="3" required>
+                    <label for="most_value">高价值</label>
+                </div>
+                <div>
+                    <input id="value" type="radio" name="value" value="2" required>
+                    <label for="value">中价值</label>
+                </div>
+                <div>
+                    <input id="not_value" type="radio" name="value" value="1" required>
+                    <label for="not_value">低价值</label>
+                    </input>
+                </div>
+
+            </fieldset>
+
+            <fieldset>
+                <legend>紧急</legend>
+                <div>
+                    <input id="most_urgent" type="radio" name="urgent" value="3" required>
+                    <label for="most_urgent">很紧急</label>
+                </div>
+                <div>
+                    <input id="urgent" type="radio" name="urgent" value="2" required>
+                    <label for="urgent">紧急</label>
+                </div>
+                <div>
+                    <input id="not_urgent" type="radio" name="urgent" value="1" required>
+                    <label for="not_urgent">不紧急</label>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>重复</legend>
+                <div>
+                    <input id="most_repeat" type="radio" name="repeat" value="True" required>
+                    <label for="most_repeat">重复</label>
+                </div>
+                <div>
+                    <input id="not_repeat" type="radio" name="repeat" value="False" required>
+                    <label for="not_repeat">不重复</label>
+                </div>
+            </fieldset>
+            <button type="submit">
+                提交
+            </button>
+        </form>
+    </body>
+
+    </html>

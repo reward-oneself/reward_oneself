@@ -28,6 +28,15 @@
 </head>
 
 <body>
+    <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
     <a href="/">返回</a>
     <h1 class="title">奖励自己</h1>
     <p class="slogan">努力累了,也别忘了好好奖励一下自己。</p>
@@ -94,8 +103,7 @@
     <div class="section">
         <h2>特别鸣谢</h2>
         <p>本作品的图标和背景图片是<a href="https://www.pexels.com/zh-cn/photo/46274/" target="_blank">在白色表面选择性聚焦摄影上打开的书</a></p>
-        <p>感谢无版权图片素材提供网站：<a href="https://pixabay.com/" target="_blank">pixabay</a>和摄影师<a
-                href="https://www.pexels.com/zh-cn/@caio/" target="_blank">Caio</a></p>
+        <p>感谢无版权图片素材提供网站：<a href="https://pixabay.com/" target="_blank">pixabay</a>和摄影师<a href="https://www.pexels.com/zh-cn/@caio/" target="_blank">Caio</a></p>
         <p>特别感谢<a href="https://hitokoto.cn/" target="_blank">一言服务</a>提供的文案支持</p>
     </div>
 </body>
