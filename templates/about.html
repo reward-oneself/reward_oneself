@@ -28,11 +28,20 @@
 </head>
 
 <body>
-    <a href="/">返回</a>
-    <h1 class="title">奖励自己</h1>
-    <p class="slogan">努力累了,也别忘了好好奖励一下自己。</p>
-    <b>这是一个在Github上以GPL v3协议开源的项目，<a href="https://github.com/reward-oneself/reward_oneself">项目地址</a></b>
-    <div class="section">
+<div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+<a href="/">返回</a>
+<h1 class="title">奖励自己</h1>
+<p class="slogan">努力累了,也别忘了好好奖励一下自己。</p>
+<b>这是一个在Github上以GPL v3协议开源的项目，<a href="https://github.com/reward-oneself/reward_oneself">项目地址</a></b>
+<div class="section">
         <h2>介绍</h2>
         <p>你是否经常感到自己在努力工作或学习后，却忘记了给自己一些应有的奖励？“奖励自己”是一款专为那些勤奋工作、学习的人们设计的应用，它鼓励用户在完成既定目标后，适当地给予自己一些奖励，以保持动力和幸福感。</p>
     </div>

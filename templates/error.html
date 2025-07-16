@@ -28,6 +28,15 @@
     <title>错误提示</title>
 </head>
 <body>
+<div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
 <h1>错误！</h1>
 <p>错误类型：{{type}}</p>
 <p>将在3秒后返回主页</p>

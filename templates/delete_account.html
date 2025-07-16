@@ -28,6 +28,15 @@
     <title>注销账户</title>
 </head>
 <body>
+<div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
 <h1>注销账户确认</h1>
 
 <p>警告：此操作将永久删除您的账户及所有相关数据，且无法恢复。</p>
