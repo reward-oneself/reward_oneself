@@ -16,30 +16,42 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 
-    
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <!-- 添加移动端适配视口设置 -->
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
-    <title>用户登录</title>
-</head>
-<body>
-<h1>登录</h1>
-<form action="/login_submit" method="post">
-    <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-    <label for="username">用户名</label>
-    <input id="username" name="username" type="text"><br>
-    <label for="password">密码</label>
-    <input id="password" name="password" type="password"><br>
-    <button type="submit">登录</button>
-</form>
-<a href="/register">注册</a>
-<footer class="footer">
-    <p style="text-align: center;"><a href="/about">关于本应用</a></p>
-</footer>
-</body>
-</html>
+
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+
+    <head>
+        <meta charset="UTF-8">
+        <!-- 添加移动端适配视口设置 -->
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <title>用户登录</title>
+    </head>
+
+    <body>
+        <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <h1>登录</h1>
+        <form action="/login_submit" method="post">
+            <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <label for="username">用户名</label>
+            <input id="username" name="username" type="text"><br>
+            <label for="password">密码</label>
+            <input id="password" name="password" type="password"><br>
+            <button type="submit">登录</button>
+        </form>
+        <a href="/register">注册</a>
+        <footer class="footer">
+            <p style="text-align: center;"><a href="/about">关于本应用</a></p>
+        </footer>
+    </body>
+
+    </html>
