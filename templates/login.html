@@ -43,9 +43,9 @@
         <form action="/login_submit" method="post">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <label for="username">用户名</label>
-            <input id="username" name="username" type="text"><br>
+            <input id="username" name="username" type="text">
             <label for="password">密码</label>
-            <input id="password" name="password" type="password"><br>
+            <input id="password" name="password" type="password">
             <button type="submit">登录</button>
         </form>
         <a href="/register">注册</a>
