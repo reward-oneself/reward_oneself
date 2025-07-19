@@ -22,19 +22,28 @@
 }
 
 table {
-    width: 50%;
+    width: 49.5%;
     height: 80%;
-    /* border-right: 3px solid #000000;
-    border-bottom: 3px solid #000000; */
     text-align: center;
     background-color:rgba(255,255,255, 0.3);
     backdrop-filter: blur(30px);
+}
+
+#reward{
+    margin-left:0px;
+    margin-right:0.5%;
+}
+
+#task{
+    margin-left:0.5%;
+    margin-right:0px;
 }
 
 #tables{
     display:flex;
     width:100%;
     height:100%;
+    margin:0px;
 }
 
 .header-container {
@@ -58,6 +67,7 @@ table {
 html, body {
     height: 100%;
     width: 100%;
+    margin: 0;
     background-color: #ad998b; /*取背景的平均色*/
     background-image: url("https://foruda.gitee.com/images/1751104375576115618/0a2c3c96_12357965.jpeg");
     background-repeat: no-repeat;
@@ -80,11 +90,21 @@ button {
     border: none;}
 
 input{
+    display: block;
     border-radius: 0px;
     background-color: rgba(255,255,255, 0);
     border: 0px;
     border-bottom: 1px solid #000000;
     outline: 0px;
+}
+
+input[type="checkbox"],input[type="radio"]{
+    width:auto;
+    display: inline;
+}
+
+fieldset{
+    border: 1px #000000 solid;
 }
 /* 移动端适配样式 */
 @media (max-width: 768px) {
@@ -105,6 +125,10 @@ input{
         width: 100%;
         font-size: 14px;
     }
+    #reward, #task{
+        margin-left:0px;
+        margin-right:0px;
+    }
 
     .nav-links {
         margin-right: 20px;
@@ -122,6 +146,7 @@ input{
         padding: 10px;
         margin: 10px 0;
         font-size: 16px;
+        display: inline;
     }
 
     button {
