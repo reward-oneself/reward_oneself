@@ -430,7 +430,7 @@ def add_task_submit():
             return False
         else:
             return (
-                not name
+                name
                 and name != ""
                 and changed_points > 0
                 and changed_time > 0
