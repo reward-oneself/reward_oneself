@@ -121,6 +121,7 @@ class UserData(db.Model):
     point = db.Column(db.Integer, nullable=False, default=0)
     task = db.Column(db.JSON, nullable=False, default=lambda: {})
     love = db.Column(db.String(60), nullable=False, default="")
+    rest_time_to_work_ratio = db.Column(db.Integer, nullable=False, default=5)
     user = db.relationship(
         "User",
         backref=db.backref("user_data", uselist=False,
@@ -320,6 +321,13 @@ def point():
     else:
         result = "失败，积分不足"
 
+    if point_change <0:
+        # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
+        return render_template(
+            "point.html", result=result, name=name, point=user.user_data.point
+        )
+    
+    
     if not repeat:
         try:
             task = dict(user.user_data.task)
