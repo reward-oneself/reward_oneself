@@ -1,7 +1,16 @@
 <tr>
-    <td><a href="point?point_change={points}&name={i}&repeat={repeat}">{i}</a></td>
+    <td>
+        <form action="/point" method="post"> 
+            <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
+            <input type="hidden" name="point_change" value="{points}">
+            <input type="hidden" name="name" value="{i}">
+            <input type="hidden" name="repeat" value="{repeat}">
+            <button type="submit" class="btn-link">{i}</button>
+        </form>
+    </td>
     <td>{points}</td>
     <td>{time}</td>
     <td>{priority}</td>
     <td>{repeat}</td>
 </tr>
+</form>

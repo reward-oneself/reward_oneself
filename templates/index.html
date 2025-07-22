@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -17,92 +17,108 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 
 
-    <!DOCTYPE html>
-    <html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-CN">
 
-    <head>
-        <meta charset="UTF-8">
-        <!-- 添加移动端适配视口设置 -->
-        <meta content="width=device-width, initial-scale=1.0" name="viewport">
-        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
-        <title>积分管理系统</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>积分管理系统</title>
+</head>
 
-    <body>
-        <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="{{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+<body>
+    <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>欢迎回来，{{username}}</h1>
+            <h2>现在积分是：{{point}}</h2>
+            <p><a href="/hitokoto">{{hitokoto}}</a></p>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1>欢迎回来，{{username}}</h1>
-                <h2>现在积分是：{{point}}</h2>
-                <p><a href="/hitokoto">{{hitokoto}}</a></p>
-            </div>
-        </div>
-        <div style="text-align: right; margin-right: 50px;">
-            <a href="/logout">退出登录</a>
-            <a href="/delete_account">注销账户</a>
-        </div>
-        <div id="tables">
-            <table id="reward">
-                <tr class="table-header">
-                    <td>
-                        <h3>奖励名称</h3>
-                    </td>
-                    <td>
-                        <h3>分值</h3>
-                    </td>
-                </tr>
-                {{reward|safe}}
-                <tr>
-                    <td>
-                        <a href="add_reward">添加新奖励</a>
-                    </td>
-                    <td>
-                        <a href="remove?type=reward">删除奖励</a>
-                    </td>
-                </tr>
-            </table>
+    </div>
+    <div style="text-align: right; margin-right: 50px;">
+        <a href="/logout">退出登录</a>
+        <a href="/delete_account">注销账户</a>
+    </div>
+    <div id="tables">
+        <table id="reward">
+            <tr class="table-header">
+                <td>
+                    <h3>奖励名称</h3>
+                </td>
+                <td>
+                    <h3>分值</h3>
+                </td>
+            </tr>
+            {{reward|safe}}
+            <tr>
+                <td>
+                    <a href="add_reward">添加新奖励</a>
+                </td>
+                <td>
+                    <form action="/remove" method="post">
+                        <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
+                        <input name="type" type="hidden" value="reward">
+                        <button class="btn-link" type="submit">删除奖励</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
 
-            <table id="task">
-                <tr class="table-header">
-                    <td>
-                        <h3>任务名称</h3>
-                    </td>
-                    <td>
-                        <h3>分值</h3>
-                    </td>
-                    <td>
-                        <h3>所需时间</h3>
-                    </td>
-                    <td>
-                        <h3>优先级</h3>
-                    </td>
-                    <td>
-                        <h3>重复 </h3>
-                    </td>
-                </tr>
-                {{task|safe}}
-                <tr>
-                    <td colspan="3">
-                        <a href="add_task">添加新任务</a>
-                    </td>
-                    <td colspan="2">
-                        <a href="remove?type=task">删除任务</a>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <footer class="footer">
-            <p style="text-align: center;"><a href="/about">关于本应用</a></p>
-        </footer>
-    </body>
+        <table id="task">
+            <tr class="table-header">
+                <td>
+                    <h3>任务名称</h3>
+                </td>
+                <td>
+                    <h3>分值</h3>
+                </td>
+                <td>
+                    <h3>所需时间</h3>
+                </td>
+                <td>
+                    <h3>优先级</h3>
+                </td>
+                <td>
+                    <h3>重复 </h3>
+                </td>
+            </tr>
+            {{task|safe}}
+            <tr>
+                <td colspan="3">
+                    <a href="add_task">添加新任务</a>
+                </td>
+                <td colspan="2">
+                    <form action="/remove" method="post">
+                        <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
+                        <input name="type" type="hidden" value="task">
+                        <button class="btn-link" type="submit">删除任务</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <footer class="footer">
+        <p style="text-align: center;"><a href="/about">关于本应用</a></p>
+    </footer>
 
-    </html>
+    <script>
+        const csrf_token = "{{ csrf_token() }}";
+        const elements = document.querySelectorAll('.csrf_token');
+        elements.forEach(element => {
+            element.value = csrf_token;
+        });
+    </script>
+</body>
+
+</html>
