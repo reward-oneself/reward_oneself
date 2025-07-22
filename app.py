@@ -124,8 +124,9 @@ class UserData(db.Model):
     rest_time_to_work_ratio = db.Column(db.Integer, nullable=False, default=5)
     user = db.relationship(
         "User",
-        backref=db.backref("user_data", uselist=False,
-                           cascade="all, delete-orphan"),
+        backref=db.backref(
+            "user_data", uselist=False, cascade="all, delete-orphan"
+        ),
     )
 
 
@@ -292,13 +293,13 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/point")
+@app.route("/point", methods=["POST"])
 @flask_login.login_required
 def point():
     user = flask_login.current_user
-    point_change = request.args.get("point_change")
-    name = request.args.get("name")
-    repeat = request.args.get("repeat")
+    point_change = request.form.get("point_change")
+    name = request.form.get("name")
+    repeat = request.form.get("repeat")
 
     if not point_change and name:
         return render_template("error.html", type="参数错误")
@@ -321,13 +322,12 @@ def point():
     else:
         result = "失败，积分不足"
 
-    if point_change <0:
+    if point_change < 0:
         # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
         return render_template(
             "point.html", result=result, name=name, point=user.user_data.point
         )
-    
-    
+
     if not repeat:
         try:
             task = dict(user.user_data.task)
@@ -338,7 +338,9 @@ def point():
         except DatabaseError:
             result = "兑换成功，但是因为删除任务时数据库出错，该任务没有被删除"
         except Exception:
-            result = "兑换成功，但是因为删除任务时出现未知错误，该任务没有被删除"
+            result = (
+                "兑换成功，但是因为删除任务时出现未知错误，该任务没有被删除"
+            )
 
     return render_template(
         "point.html", result=result, name=name, point=user.user_data.point
@@ -487,13 +489,13 @@ def add_task_submit():
         return render_template("error.html", type="未知错误")
 
 
-@app.route("/remove")
+@app.route("/remove", methods=["POST"])
 @flask_login.login_required
 def remove():
     """
     渲染移除任务或奖励的页面，根据提供的类型参数，并列出所有可移除的项。
     """
-    type_name = request.args.get("type")
+    type_name = request.form.get("type")
     if not type_name:
         return render_template("error.html", type="参数错误")
 
@@ -512,7 +514,7 @@ def remove():
     return render_template("remove.html", type=type_name, text=text)
 
 
-@app.route("/remove_submit", methods=["POST", "GET"])
+@app.route("/remove_submit", methods=["POST"])
 @flask_login.login_required
 def remove_submit() -> str:
     """
@@ -528,7 +530,7 @@ def remove_submit() -> str:
     - 参数验证防止无效数据操作
     - 异常处理保证数据一致性
     """
-    type_name: Optional[str] = request.args.get("type")
+    type_name: Optional[str] = request.form.get("type")
     form_data: Dict[str, str] = request.form.to_dict()
 
     if not type_name:
@@ -541,7 +543,9 @@ def remove_submit() -> str:
         copy: Dict[str, Any] = dict(data)
         # 保留不在form_data中的项
         updated_data: Dict[str, Any] = {
-            name: value for name, value in copy.items() if name not in form_data
+            name: value
+            for name, value in copy.items()
+            if name not in form_data
         }
 
         return updated_data

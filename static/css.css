@@ -103,6 +103,20 @@ input[type="checkbox"],input[type="radio"]{
     display: inline;
 }
 
+.btn-link{
+/* 重置按钮默认样式 */
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: #000000; /* 链接默认颜色 */
+    text-decoration: underline; /* 下划线 */
+    cursor: pointer; /* 鼠标指针样式 */
+    outline: none; /* 移除聚焦时的轮廓 */
+    display: inline;
+}
+
 fieldset{
     border: 1px #000000 solid;
 }
