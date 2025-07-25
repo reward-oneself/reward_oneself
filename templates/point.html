@@ -16,7 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 
-
+<!--传参说明：
+    必须传参：name,result,point
+    可选传参：from_page,value,time,repeat
+-->
     <!DOCTYPE html>
     <html lang="zh-CN">
 
@@ -41,12 +44,32 @@
         </div>
         <h1>{{name}}兑换{{result}}</h1>
         <h2>现在积分是：{{point}}</h2>
+        {% if from_page == "timer" %}
+        <p>本阶段任务已完成。请按下方选择返回主页或继续下轮计时</p>
+
+        <form action="/timer_submit" method="post">
+            <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="name" value="{{name}}">
+            <input type="hidden" name="value" value="{{value}}">
+            <input type="hidden" name="time" value="{{time}}">
+            <input type="hidden" name="repeat" value="{{repeat}}"
+            <button class="btn-link" type="submit">继续计时</button>
+        </form>
+
+        <a href="/">返回主页</a>
+
+        {% else %}
+       <!-- 3秒后自动返回主页 -->
+        
         <p>将在3秒后返回主页</p>
         <script>
             setTimeout(function() {
                 window.location.href = "/";
             }, 3000);
         </script>
+
+        {% endif %}
+
     </body>
 
     </html>

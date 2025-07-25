@@ -300,9 +300,9 @@ def point():
     point_change = request.form.get("point_change")
     name = request.form.get("name")
     repeat = request.form.get("repeat")
-
-    if not point_change and name:
-        return render_template("error.html", type="参数错误")
+    # 以下参数为可选参数
+    from_page = request.form.get("from")
+    time = request.form.get("time")
 
     try:
         point_change = int(point_change)
@@ -314,36 +314,111 @@ def point():
     except ValueError:
         return render_template("error.html", type="数据格式错误")
 
-    updated_point = user.user_data.point + point_change
-    if updated_point >= 0:
-        user.user_data.point = updated_point
-        db.session.commit()
-        result = "成功"
-    else:
-        result = "失败，积分不足"
+    def process_point_change(type, repeat=False):
+        """处理积分变更，返回结果"""
 
-    if point_change < 0:
-        # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
-        return render_template(
-            "point.html", result=result, name=name, point=user.user_data.point
-        )
+        if not point_change and name:
+            return render_template("error.html", type="参数错误")
 
-    if not repeat:
+        # 处理积分变更
+        updated_point = user.user_data.point + point_change
+        if updated_point >= 0:
+            user.user_data.point = updated_point
+            db.session.commit()
+            result = "成功"
+        else:
+            result = "失败，积分不足"
+
+        # 如果是奖励或者重复任务，则跳过删除的逻辑
+        if type == "reward" or repeat:
+            return (result, False)
+
+        # 删除不重复的任务
         try:
             task = dict(user.user_data.task)
             del task[name]
             user.user_data.task = task
             db.session.commit()
             result = "成功。因为没有重复，所以该任务已自动删除"
+            delete = True
         except DatabaseError:
             result = "兑换成功，但是因为删除任务时数据库出错，该任务没有被删除"
+            delete = False
         except Exception:
             result = (
                 "兑换成功，但是因为删除任务时出现未知错误，该任务没有被删除"
             )
+            delete = False
 
+        return (result, delete)
+
+    if point_change < 0:
+        # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
+        return_value = process_point_change(type="reward")
+        result = return_value[0]
+        return render_template(
+            "point.html", result=result, name=name, point=user.user_data.point
+        )
+
+    # 奖励在此前已经return，而任务必然带有time属性，所以此处不需要判断
+    changed_time = int(time)
+    if changed_time == 0:
+        return_value = process_point_change(type="reward")
+        result = return_value[0]
+        return render_template(
+            "point.html", result=result, name=name, point=user.user_data.point
+        )
+    elif from_page == "timer":
+        return_value = process_point_change(type="task")
+        result = return_value[0]
+        delete = return_value[1]
+        # 如果任务删除，直接返回结果页面
+        if delete:
+            return render_template(
+                "point.html",
+                result=result,
+                name=name,
+                point=user.user_data.point,
+            )
+        else:
+            return render_template(
+                "point.html",
+                result=result,
+                name=name,
+                point=user.user_data.point,
+                from_page=from_page,
+                value=point_change,
+                time=changed_time,
+                repeat=repeat,
+            )
+    else:
+        return timer(
+            name=name, value=point_change, time=changed_time, repeat=repeat
+        )
+
+
+# 计时器逻辑：首先来到/point路由，判断是否是定时任务（时间不为0）
+# 如果是则调用timer函数跳转计时器
+#   计时完成后再次回到/point路由，完成相应积分变更（非重复任务会在此时被删除）
+#   然后返回积分操作结果页面（point.html），传递from_page = "timer"，触发{% if from_page == "timer" %}，渲染一个包含询问是否继续的表单
+#       如果继续，则发送post请求到/timer_submit路由，并将参数转到timer函数，开始计时
+# 否则调用process_point_change函数处理积分变更。此时渲染正常的积分操作结果页面（point.html），自动跳转回主页
+
+
+@app.route("/timer_submit", methods=["POST"])
+@flask_login.login_required
+def timer_submit():
+    time = request.form.get("time")
+    name = request.form.get("name")
+    value = request.form.get("value")
+    repeat = request.form.get("repeat")
+    return timer(name=name, value=value, time=time, repeat=repeat)
+
+
+# 抽离出单独的函数，处理来自服务器本身和网络的数据，让服务器的数据不用走网络
+def timer(name, value, time, repeat):
     return render_template(
-        "point.html", result=result, name=name, point=user.user_data.point
+        "timer.html", name=name, value=value, time=time, repeat=repeat
     )
 
 
@@ -443,7 +518,7 @@ def add_task_submit():
                 name
                 and name != ""
                 and changed_points > 0
-                and changed_time > 0
+                and changed_time >= 0
                 and changed_value > 0
                 and changed_value <= 3
                 and changed_urgent > 0
@@ -462,12 +537,18 @@ def add_task_submit():
     if importance == "max":
         priority = "max"
     else:
-        priority = round(
-            int(importance) * 4
-            + changed_urgent * 2
-            + changed_value * 3
-            - changed_time / 10
-        )
+
+        if changed_time == 0:
+            priority = round(
+                int(importance) * 4 + changed_urgent * 2 + changed_value * 3
+            )
+        else:
+            priority = round(
+                int(importance) * 4
+                + changed_urgent * 2
+                + changed_value * 3
+                - changed_time / 10
+            )
 
     task[name] = {
         "points": changed_points,
