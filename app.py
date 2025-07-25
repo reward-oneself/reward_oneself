@@ -400,9 +400,10 @@ def point():
 # 计时器逻辑：首先来到/point路由，判断是否是定时任务（时间不为0）
 # 如果是则调用timer函数跳转计时器
 #   计时完成后再次回到/point路由，完成相应积分变更（非重复任务会在此时被删除）
-#   然后返回积分操作结果页面（point.html），传递from_page = "timer"，触发{% if from_page == "timer" %}，渲染一个包含询问是否继续的表单
+#   如果任务被删除，则此时渲染正常的积分操作结果页面，自动跳转回主页
+#   否则返回积分操作结果页面，传递from_page = "timer"，触发{% if from_page == "timer" %}，渲染一个包含询问是否继续的表单
 #       如果继续，则发送post请求到/timer_submit路由，并将参数转到timer函数，开始计时
-# 否则调用process_point_change函数处理积分变更。此时渲染正常的积分操作结果页面（point.html），自动跳转回主页
+# 否则调用process_point_change函数处理积分变更。此时渲染正常的积分操作结果页面，自动跳转回主页
 
 
 @app.route("/timer_submit", methods=["POST"])
