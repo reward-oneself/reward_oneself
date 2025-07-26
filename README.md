@@ -87,3 +87,5 @@ python app.py
 
 - [一言服务](https://hitokoto.cn/) 提供文案支持
 - 本作品的图标和背景图片是[在白色表面选择性聚焦摄影上打开的书](https://www.pexels.com/zh-cn/photo/46274/)，感谢无版权图片素材提供网站：[pixabay](https://pixabay.com/)和摄影师[Caio](https://www.pexels.com/zh-cn/@caio/)
+- 计时器提示音：自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361
+- 完成音效：许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432

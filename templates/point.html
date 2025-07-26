@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -20,56 +20,57 @@
     必须传参：name,result,point
     可选传参：from_page,value,time,repeat
 -->
-    <!DOCTYPE html>
-    <html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-CN">
 
-    <head>
-        <meta charset="UTF-8">
-        <!-- 添加移动端适配视口设置 -->
-        <meta content="width=device-width, initial-scale=1.0" name="viewport">
-        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
-        <title>积分操作结果</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <!-- 添加移动端适配视口设置 -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <title>积分操作结果</title>
+</head>
 
-    <body>
-        <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="{{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-        </div>
-        <h1>{{name}}兑换{{result}}</h1>
-        <h2>现在积分是：{{point}}</h2>
-        {% if from_page == "timer" %}
-        <p>本阶段任务已完成。请按下方选择返回主页或继续下轮计时</p>
-
-        <form action="/timer_submit" method="post">
-            <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="name" value="{{name}}">
-            <input type="hidden" name="value" value="{{value}}">
-            <input type="hidden" name="time" value="{{time}}">
-            <input type="hidden" name="repeat" value="{{repeat}}">
-            <button class="btn-link" type="submit">继续计时</button>
-        </form>
-
-        <a href="/">返回主页</a>
-
-        {% else %}
-       <!-- 3秒后自动返回主页 -->
-        
-        <p>将在3秒后返回主页</p>
-        <script>
-            setTimeout(function() {
-                window.location.href = "/";
-            }, 3000);
-        </script>
-
+<body>
+    <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
         {% endif %}
+        {% endwith %}
+    </div>
+    <h1>{{name}}兑换{{result}}</h1>
+    <h2>现在积分是：{{point}}</h2>
 
-    </body>
+    {% if from_page == "timer" %}
+    <p>本阶段任务已完成。请按下方选择返回主页或继续下轮计时</p>
 
-    </html>
+    <form action="/timer_submit" method="post" style="margin: 0px;">
+        <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="name" value="{{name}}">
+        <input type="hidden" name="value" value="{{value}}">
+        <input type="hidden" name="time" value="{{time}}">
+        <input type="hidden" name="repeat" value="{{repeat}}">
+        <button type="submit">继续计时</button>
+    </form>
+
+    <button type="button" onclick="window.location.href='/'">返回主页</button>
+
+    {% else %}
+    <!-- 3秒后自动返回主页 -->
+
+    <p>将在3秒后返回主页</p>
+    <script>
+        setTimeout(function () {
+            window.location.href = "/";
+        }, 3000);
+    </script>
+
+    {% endif %}
+
+</body>
+
+</html>

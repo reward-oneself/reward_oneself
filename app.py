@@ -135,6 +135,14 @@ class UserData(db.Model):
 def favicon():
     return send_from_directory(app.static_folder, "favicon.ico")
 
+@app.route("/timer_sound")
+def timer_sound():
+    """自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361​""" 
+    return send_from_directory(app.static_folder, "timer.wav")
+@app.route("/finish_sound")
+def finish_sound():
+    """完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432"""
+    return send_from_directory(app.static_folder, "finish.wav")
 
 @app.route("/login")
 def login():
@@ -713,7 +721,7 @@ if __name__ == "__main__":
     应用启动入口
     - 调试模式开启（开发环境）
     - 监听所有网络接口（便于容器部署）
-    - 使用默认端口5000
+    - 使用  默认端口5000
     """
     if DEVELOPMENT == "True":
         app.run(host="0.0.0.0", port=8080, debug=True)
