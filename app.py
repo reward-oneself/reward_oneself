@@ -108,6 +108,7 @@ class UserData(db.Model):
     - point: 积分余额，默认0
     - task: JSON字段，存储任务信息，默认空对象
     - user: 反向关联User模型，配置级联删除
+    - rest_time_to_work_ratio: 休息时间与工作时间的比例，默认5
     """
 
     id = db.Column(db.Integer, primary_key=True)
@@ -314,7 +315,7 @@ def point():
     except ValueError:
         return render_template("error.html", type="数据格式错误")
 
-    def process_point_change(type, repeat=False):
+    def process_point_change(type,repeat):
         """处理积分变更，返回结果"""
 
         if not point_change and name:
@@ -354,7 +355,7 @@ def point():
 
     if point_change < 0:
         # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
-        return_value = process_point_change(type="reward")
+        return_value = process_point_change(type="reward",repeat=repeat)
         result = return_value[0]
         return render_template(
             "point.html", result=result, name=name, point=user.user_data.point
@@ -363,13 +364,13 @@ def point():
     # 奖励在此前已经return，而任务必然带有time属性，所以此处不需要判断
     changed_time = int(time)
     if changed_time == 0:
-        return_value = process_point_change(type="reward")
+        return_value = process_point_change(type="reward",repeat=repeat)
         result = return_value[0]
         return render_template(
             "point.html", result=result, name=name, point=user.user_data.point
         )
     elif from_page == "timer":
-        return_value = process_point_change(type="task")
+        return_value = process_point_change(type="task",repeat=repeat)
         result = return_value[0]
         delete = return_value[1]
         # 如果任务删除，直接返回结果页面
@@ -419,7 +420,12 @@ def timer_submit():
 # 抽离出单独的函数，处理来自服务器本身和网络的数据，让服务器的数据不用走网络
 def timer(name, value, time, repeat):
     return render_template(
-        "timer.html", name=name, value=value, time=time, repeat=repeat
+        "timer.html",
+        name=name,
+        value=value,
+        time=time,
+        repeat=repeat,
+        rest_time_to_work_ratio=flask_login.current_user.user_data.rest_time_to_work_ratio
     )
 
 
