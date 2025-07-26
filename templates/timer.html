@@ -1,3 +1,4 @@
+<!--该代码由Trae生成，其实我一点都不会JavaScript（AI真的太好用了你们知道吗）-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,18 +7,74 @@
     <title>参数测试页面</title>
 </head>
 <body>
-    <h1>参数测试结果</h1>
-    <p>name: {{ name }}</p>
-    <p>value: {{ value }}</p>
-    <p>time: {{ time }}</p>
-    <p>repeat: {{ repeat }}</p>
-    <form action="/point" method="post">
-        <input type="hidden" name="name" value="{{ name }}">
-        <input type="hidden" name="value" value="{{ value }}">
-        <input type="hidden" name="time" value="{{ time }}">
-        <input type="hidden" name="repeat" value="{{ repeat }}">
-        
-        <button type="submit">提交</button>
-    </form>
+    <div class="timer-container">
+        <h1 id="status">工作中</h1>
+        <div id="time-display" style="font-size: 48px; margin: 20px 0;">00:00</div>
+        <form action="/point" method="post" id="timer-form" style="display: none;">
+            <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}"></input>
+            <input type="hidden" name="name" value="{{ name }}">
+            <input type="hidden" name="point_change" value="{{ value }}">
+            <input type="hidden" name="time" value="{{ time }}">
+            <input type="hidden" name="repeat" value="{{ repeat }}">
+            <input type="hidden" name="from" value="timer">
+        </form>
+    </div>
+
+    <script>
+        // 初始化参数
+        const workTime = parseInt({{ time }}); // 工作时间（分钟）
+        const restRatio = parseInt({{ rest_time_to_work_ratio }}); // 休息时间比例
+        const restTime = Math.round(workTime / restRatio); // 休息时间（分钟）
+        const isRepeat = {{ repeat | lower }}; // 是否重复任务
+
+        let currentTime = workTime * 60; // 转换为秒
+        let isWorking = true;
+        let timerInterval;
+
+        // 更新时间显示
+        function updateDisplay() {
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            document.getElementById('time-display').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // 切换阶段
+        function switchPhase() {
+            isWorking = !isWorking;
+            currentTime = isWorking ? workTime * 60 : restTime * 60;
+            document.getElementById('status').textContent = isWorking ? '工作中' : '休息中';
+        }
+
+        // 倒计时结束处理
+        function handleFinish() {
+            clearInterval(timerInterval);
+            if (isWorking) {
+                // 工作结束后切换到休息
+                if (restTime > 0) {
+                    switchPhase();
+                    timerInterval = setInterval(() => {
+                        currentTime--;
+                        updateDisplay();
+                        if (currentTime <= 0) handleFinish();
+                    }, 1000);
+                } else {
+                    // 无休息时间直接提交
+                    document.getElementById('timer-form').submit();
+                }
+            } else {
+                // 休息结束后处理，提交表单
+                document.getElementById('timer-form').submit();
+            }
+        }
+
+        // 启动计时器
+        updateDisplay();
+        timerInterval = setInterval(() => {
+            currentTime--;
+            updateDisplay();
+            if (currentTime <= 0) handleFinish();
+        }, 1000);
+    </script>
 </body>
 </html>
