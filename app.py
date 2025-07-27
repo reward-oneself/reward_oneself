@@ -297,6 +297,36 @@ def hitokoto_submit():
         return render_template("error.html", type="其他错误")
 
 
+@app.route("/settings")
+@flask_login.login_required
+def settings():
+    return render_template("settings.html")
+
+@app.route("/settings_submit", methods=["POST"])
+@flask_login.login_required
+def settings_submit():
+    ratio = request.form.get("rest_time_to_work_ratio")
+    try:
+        ratio = int(ratio)
+        if ratio <= 0:
+            raise ValueError
+    except ValueError:
+        return render_template("error.html", type="比例必须为正整数")
+    
+    user = flask_login.current_user
+    db.session.refresh(user.user_data)
+    user.user_data.rest_time_to_work_ratio = ratio
+    
+    try:
+        db.session.commit()
+        return redirect(url_for("index"))
+    except DatabaseError:
+        db.session.rollback()
+        return render_template("error.html", type="数据库错误")
+    except Exception:
+        return render_template("error.html", type="其他错误")
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
