@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>设置休息工作时间比例</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <script>
+        function validateForm() {
+            const input = document.getElementById('rest_time_to_work_ratio').value;
+            const ratio = parseInt(input, 10);
+            if (isNaN(ratio) || ratio < 3 || ratio > 10) {
+                let message;
+                if (ratio > 10) {
+                    message = '啊？！Σ(っ °Д °;)っ这的要这样吗？这样会累坏的！ヽ(*。>Д<)o゜';
+                } else if (ratio < 3 && ratio > 0) {
+                    message = '哦？！居然设置这么低的值ˋ( ° ▽、° )。放松固然重要，但也要切记“劳逸结合”哦~';
+                } else if (ratio <= 0) {
+                    alert('请输入大于0的数值。');
+                    return false;
+                } else {
+                    message = '请输入3到10之间的正整数。';
+                }
+                const confirmSubmit = confirm(message + '\n是否继续提交？');
+                return confirmSubmit;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>设置休息与工作时间比例</h1>
+        <b>休息时间的计算公式为：休息时间 = 工作时间 ÷ 休息时间与工作时间比例</b>
+        <p>默认值为5（标准番茄钟比例），推荐范围为4~7，容许最小值为1</p>
+        <form method="POST" action="/settings_submit" onsubmit="return validateForm()">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="rest_time_to_work_ratio">休息时间与工作时间比例（正整数）:</label>
+            <input type="text" id="rest_time_to_work_ratio" name="rest_time_to_work_ratio" required>
+            <button type="submit">保存</button>
+        </form>
+        <p><a href="/">返回主页</a></p>
+    </div>
+</body>
+</html>
