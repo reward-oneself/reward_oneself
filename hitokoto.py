@@ -4,16 +4,19 @@ import json
 import sys
 
 import requests
+import random
 
+with open("hitokoto.txt", "r", encoding="utf-8") as f:
+    hitokoto_text = f.read()
+    hitokoto_text = hitokoto_text.split("\n")
 
-def get_hitokoto(love=""):
-    try:
-        with open("settings.json", "r", encoding="utf-8") as f:
-            settings = json.load(f)
-            HITOKOTO_URL = settings["hitokoto_url"]
-    except FileNotFoundError:
-        print("请先配置settings.json")
-        sys.exit()
+def get_hitokoto_by_file():
+    return random.choice(hitokoto_text)
+
+def get_hitokoto(HITOKOTO_URL=None,love="",LOCAL_MODE=False):
+    if LOCAL_MODE:
+        return get_hitokoto_by_file()
+    
     url = HITOKOTO_URL + love
     response = requests.get(url)
     if response.status_code == 200:
@@ -24,10 +27,12 @@ def get_hitokoto(love=""):
         return f"{hitokoto_text}——{author}"
 
     else:
-        return f"获取失败，错误码为{response.status_code}"
+        return get_hitokoto_by_file()
 
 
 if __name__ == "__main__":
     # 调用函数并打印结果
-    hitokoto_text = get_hitokoto()
+    hitokoto_text = get_hitokoto(LOCAL_MODE=True)
+    print(hitokoto_text)
+    hitokoto_text = get_hitokoto(HITOKOTO_URL="https://v1.hitokoto.cn/")
     print(hitokoto_text)
