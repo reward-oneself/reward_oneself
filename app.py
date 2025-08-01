@@ -30,6 +30,7 @@ from flask import (
     request,
     send_from_directory,
     url_for,
+    Response
 )
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -157,6 +158,23 @@ def finish_sound():
     """完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432"""
     return send_from_directory(app.static_folder, "finish.wav")
 
+@app.route("/LICENSE")
+def license():
+    with open("LICENSE", "r", encoding="utf-8") as f:
+        license_text = f.read()
+    return Response(license_text, mimetype="text/plain")
+
+@app.route("/LICENSES")
+def licenses():
+    with open("LICENSES", "r", encoding="utf-8") as f:
+        licenses_text = f.read()
+    return Response(licenses_text, mimetype="text/plain")
+
+@app.route("/LICENSES_NOT_SOFTWARE")
+def licenses_not_software():
+    with open("LICENSES_NOT_SOFTWARE", "r", encoding="utf-8") as f:
+        licenses_not_software_text = f.read()
+    return Response(licenses_not_software_text, mimetype="text/plain")
 
 @app.route("/login")
 def login():
