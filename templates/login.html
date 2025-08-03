@@ -27,6 +27,27 @@
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>用户登录</title>
+        <script>
+            function validateLoginForm() {
+                // 获取表单元素
+                const username = document.forms["loginForm"]["username"].value;
+                const password = document.forms["loginForm"]["password"].value;
+                
+                // 验证用户名
+                if (username == null || username.trim() === "") {
+                    alert("请输入用户名");
+                    return false;
+                }
+                
+                // 验证密码
+                if (password == null || password === "") {
+                    alert("请输入密码");
+                    return false;
+                }
+                
+                return true;
+            }
+        </script>
     </head>
 
     <body>
@@ -40,7 +61,7 @@
             {% endwith %}
         </div>
         <h1>登录</h1>
-        <form action="/login_submit" method="post">
+        <form name="loginForm" action="/login_submit" method="post" onsubmit="return validateLoginForm()">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <label for="username">用户名</label>
             <input id="username" name="username" type="text">
