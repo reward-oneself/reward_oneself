@@ -69,6 +69,7 @@
         let currentTime = workTime * 60; 
         let isWorking = true;
         let timerInterval;
+        let heartbeatInterval; // 心跳保活定时器
         let audioContext; // 新增音频上下文变量
 
         // 新增：用户首次点击解锁自动播放
@@ -81,6 +82,38 @@
             document.body.removeEventListener('click', unlockAudio);
         }
         document.body.addEventListener('click', unlockAudio); // 监听首次点击
+
+        // 心跳保活函数
+        function sendHeartbeat() {
+            // 创建一个隐藏的iframe来发送心跳请求
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = '/heartbeat';
+            document.body.appendChild(iframe);
+            
+            // 一段时间后移除iframe以释放资源
+            setTimeout(() => {
+                if (iframe.parentNode) {
+                    iframe.parentNode.removeChild(iframe);
+                }
+            }, 5000); // 5秒后移除
+        }
+
+        // 启动心跳保活机制，每5分钟发送一次心跳
+        function startHeartbeat() {
+            // 立即发送一次心跳
+            sendHeartbeat();
+            // 每5分钟发送一次心跳
+            heartbeatInterval = setInterval(sendHeartbeat, 5 * 60 * 1000);
+        }
+
+        // 停止心跳保活机制
+        function stopHeartbeat() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+        }
 
         // 更新时间显示（保持不变）
         function updateDisplay() {
@@ -124,6 +157,7 @@
                     }, 1000);
                 } else {
                     // 无休息时间直接提交
+                    stopHeartbeat(); // 停止心跳
                     document.getElementById('timer-form').submit();
                 }
             } else {
@@ -131,10 +165,12 @@
                 const finishAudio = new Audio("/finish_sound");
                 finishAudio.play().then(() => {
                     // 音效播放完成后提交表单
+                    stopHeartbeat(); // 停止心跳
                     document.getElementById('timer-form').submit();
                 }).catch(error => {
                     console.error('完成音效播放失败:', error);
                     // 即使播放失败，仍然提交表单
+                    stopHeartbeat(); // 停止心跳
                     document.getElementById('timer-form').submit();
                 });
             }
@@ -142,6 +178,7 @@
 
         // 启动计时器
         updateDisplay();
+        startHeartbeat(); // 启动心跳保活
         timerInterval = setInterval(() => {
             currentTime--;
             updateDisplay();

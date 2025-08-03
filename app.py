@@ -70,6 +70,8 @@ except KeyError as e:
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATA
 app.config["SECRET_KEY"] = KEY
+app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 24 * 30  # 每30天强制自动登录
+app.config['WTF_CSRF_TIME_LIMIT'] = 60 * 60 * 2 #会话限制两小时
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -175,6 +177,15 @@ def licenses_not_software():
     with open("LICENSES_NOT_SOFTWARE", "r", encoding="utf-8") as f:
         licenses_not_software_text = f.read()
     return Response(licenses_not_software_text, mimetype="text/plain")
+
+@app.route("/heartbeat")
+@flask_login.login_required
+def heartbeat():
+    """
+    心跳保活接口
+    用于计时器页面保持会话活跃，防止长时间计时期间会话过期
+    """
+    return "", 204  # 返回空内容和204状态码
 
 @app.route("/login")
 def login():
@@ -488,6 +499,7 @@ def timer_submit():
     name = request.form.get("name")
     value = request.form.get("value")
     repeat = request.form.get("repeat")
+
     return timer(name=name, value=value, time=time, repeat=repeat)
 
 
