@@ -26,6 +26,55 @@
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>添加新奖励或任务</title>
+        <script>
+            function validateTaskForm() {
+                // 获取表单元素
+                const name = document.forms["taskForm"]["name"].value;
+                const points = document.forms["taskForm"]["points"].value;
+                const time = document.forms["taskForm"]["time"].value;
+                const importance = document.forms["taskForm"]["importance"].value;
+                const value = document.forms["taskForm"]["value"].value;
+                const urgent = document.forms["taskForm"]["urgent"].value;
+                
+                // 验证任务名称
+                if (name == null || name.trim() === "") {
+                    alert("请输入任务名称");
+                    return false;
+                }
+                
+                // 验证积分值
+                if (points == null || points === "" || parseInt(points) <= 0) {
+                    alert("请输入有效的积分值（大于0的数字）");
+                    return false;
+                }
+                
+                // 验证时间
+                if (time == null || time === "" || parseInt(time) < 0) {
+                    alert("请输入有效的时间（大于等于0的数字）");
+                    return false;
+                }
+                
+                // 验证重要性
+                if (!importance) {
+                    alert("请选择任务重要性");
+                    return false;
+                }
+                
+                // 验证价值
+                if (!value) {
+                    alert("请选择任务价值");
+                    return false;
+                }
+                
+                // 验证紧急程度
+                if (!urgent) {
+                    alert("请选择任务紧急程度");
+                    return false;
+                }
+                
+                return true;
+            }
+        </script>
     </head>
 
     <body>
@@ -39,7 +88,7 @@
             {% endwith %}
         </div>
         <h1>添加</h1>
-        <form action="/add_task_submit" method="POST">
+        <form name="taskForm" action="/add_task_submit" method="POST" onsubmit="return validateTaskForm()">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <div style="margin: 10px;">
                 <label>名称：</label>

@@ -27,6 +27,33 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
     <title>用户注册</title>
+    <script>
+        function validateRegisterForm() {
+            // 获取表单元素
+            const username = document.forms["registerForm"]["username"].value;
+            const password = document.forms["registerForm"]["password"].value;
+            
+            // 验证用户名
+            if (username == null || username.trim() === "") {
+                alert("请输入用户名");
+                return false;
+            }
+            
+            // 验证密码
+            if (password == null || password === "") {
+                alert("请输入密码");
+                return false;
+            }
+            
+            // 验证密码长度
+            if (password.length < 6) {
+                alert("密码长度至少为6位");
+                return false;
+            }
+            
+            return true;
+        }
+    </script>
 </head>
 
 <body>
@@ -40,7 +67,7 @@
     {% endif %}
     {% endwith %}
     <h1>注册</h1>
-    <form action="/register_submit" method="post">
+    <form name="registerForm" action="/register_submit" method="post" onsubmit="return validateRegisterForm()">
         <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
         <label for="username">用户名</label>
         <input id="username" name="username" required type="text">

@@ -26,6 +26,27 @@
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>添加新奖励或任务</title>
+        <script>
+            function validateRewardForm() {
+                // 获取表单元素
+                const name = document.forms["rewardForm"]["name"].value;
+                const points = document.forms["rewardForm"]["points"].value;
+                
+                // 验证奖励名称
+                if (name == null || name.trim() === "") {
+                    alert("请输入奖励名称");
+                    return false;
+                }
+                
+                // 验证积分值
+                if (points == null || points === "" || parseInt(points) <= 0) {
+                    alert("请输入有效的积分值（大于0的数字）");
+                    return false;
+                }
+                
+                return true;
+            }
+        </script>
     </head>
 
     <body>
@@ -39,7 +60,7 @@
             {% endwith %}
         </div>
         <h1>添加</h1>
-        <form action="/add_reward_submit" method="POST">
+        <form name="rewardForm" action="/add_reward_submit" method="POST" onsubmit="return validateRewardForm()">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <div style="margin: 10px;">
                 <label>名称：</label>
