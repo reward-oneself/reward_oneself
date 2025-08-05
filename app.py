@@ -449,7 +449,7 @@ def point():
     # 奖励在此前已经return，而任务必然带有time属性，所以此处不需要判断
     changed_time = int(time)
     if changed_time == 0:
-        return_value = process_point_change(type="reward", repeat=repeat)
+        return_value = process_point_change(type="task", repeat=repeat)
         result = return_value[0]
         return render_template(
             "point.html", result=result, name=name, point=user.user_data.point
