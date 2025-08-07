@@ -26,15 +26,22 @@
         }
 
         .timer-div {
-            width: 50%;
+            width: 80%;
             height: 50%;
             background: #3498db;
             text-align: center;
             background-color: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(30px);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             justify-content: center;
+        }
+        @media (max-width: 768px) {
+            footer{
+                height: 10%;
+                width: 100%;
+                font-size: 10px;
+            }
         }
     </style>
 
@@ -59,7 +66,14 @@
         <p>本页面的计时器提示音是：自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361</p>
         <p>本页面的完成音效是：完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432</p>
     </footer>
+    <!-- 引入 NoSleep.js -->
+    <script src="{{ url_for('static', filename='js/NoSleep.min.js') }}"></script>
     <script>
+        // 初始化 NoSleep
+        var noSleep = new NoSleep();
+        console.log('NoSleep 已初始化');
+
+        
         // 初始化参数
         const workTime = parseInt({{ time }}); 
         const restRatio = parseInt({{ rest_time_to_work_ratio }}); 
@@ -72,8 +86,15 @@
         let heartbeatInterval; // 心跳保活定时器
         let audioContext; // 新增音频上下文变量
 
-        // 新增：用户首次点击解锁自动播放
+        // 新增：用户首次点击解锁自动播放和防止休眠
         function unlockAudio() {
+            // 启用 NoSleep 防止设备休眠
+            try{
+            noSleep.enable();
+            console.log('NoSleep 已启用');
+            } catch (error) {
+                console.error('NoSleep 启用失败：', error);
+            }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioContext.resume().then(() => {
                 console.log('音频上下文已解锁');
@@ -113,6 +134,10 @@
                 clearInterval(heartbeatInterval);
                 heartbeatInterval = null;
             }
+            
+            // 禁用 NoSleep 允许设备休眠
+            noSleep.disable();
+            console.log('NoSleep 已禁用');
         }
 
         // 更新时间显示（保持不变）
