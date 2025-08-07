@@ -289,11 +289,16 @@ def index():
         add_text = f.read()
     for i in sort_task_name_list:
         task_data = task.get(i)
+        if task_data["repeat"]:
+            repeat_icon = "🔁"
+        else:
+            repeat_icon = "🚫"
         task_text += add_text.format(
             points=task_data["points"],
             time=task_data["time"],
             priority=task_data["priority"],
             repeat=task_data["repeat"],
+            repeat_icon=repeat_icon,
             i=i,
         )
 
