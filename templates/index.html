@@ -47,9 +47,9 @@
         </div>
     </div>
     <div style="text-align: right; margin-right: 50px;">
-        <a href="/logout">退出登录</a>
-        <a href="/delete_account">注销账户</a>
-        <a href="/settings">休息工作比</a>
+        <a href="/logout">🚪退出登录</a>
+        <a href="/delete_account">🗑️注销账户</a>
+        <a href="/settings">⏰休息工作比</a>
     </div>
     <div id="tables">
         <table id="reward">
@@ -64,13 +64,13 @@
             {{reward|safe}}
             <tr>
                 <td>
-                    <a href="add_reward">添加新奖励</a>
+                    <a href="add_reward">➕添加新奖励</a>
                 </td>
                 <td>
                     <form action="/remove" method="post">
                         <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
                         <input name="type" type="hidden" value="reward">
-                        <button class="btn-link" type="submit">删除奖励</button>
+                        <button class="btn-link" type="submit">🗑️删除奖励</button>
                     </form>
                 </td>
             </tr>
@@ -97,13 +97,13 @@
             {{task|safe}}
             <tr>
                 <td colspan="3">
-                    <a href="add_task">添加新任务</a>
+                    <a href="add_task">➕添加新任务</a>
                 </td>
                 <td colspan="2">
                     <form action="/remove" method="post">
                         <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
                         <input name="type" type="hidden" value="task">
-                        <button class="btn-link" type="submit">删除任务</button>
+                        <button class="btn-link" type="submit">🗑️删除任务</button>
                     </form>
                 </td>
             </tr>
