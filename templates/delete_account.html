@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -25,7 +25,8 @@
         <!-- 添加移动端适配视口设置 -->
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>注销账户</title>
     </head>
 
@@ -39,13 +40,13 @@
             {% endif %}
             {% endwith %}
         </div>
-        <h1>注销账户确认</h1>
+        <h1 class="title">注销账户确认</h1>
 
-        <p>警告：此操作将永久删除您的账户及所有相关数据，且无法恢复。</p>
+        <div class="alert alert-danger mb-4">警告：此操作将永久删除您的账户及所有相关数据，且无法恢复。</div>
 
-        <form action="/delete_account_submit" method="post">
+        <form action="/delete_account_submit" method="post" class="container mt-4" style="max-width: 600px;">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <button type="submit">⚠️确认注销</button>
+            <button type="submit" class="btn btn-danger w-100 mb-3">⚠️确认注销</button>
         </form>
 
         <p><a href="/">🏠取消并返回主页</a></p>

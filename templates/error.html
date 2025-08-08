@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -25,11 +25,13 @@
         <!-- 添加移动端适配视口设置 -->
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>错误提示</title>
     </head>
 
     <body>
+<div class="container mt-4 d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
         <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -39,14 +41,20 @@
             {% endif %}
             {% endwith %}
         </div>
-        <h1>错误！</h1>
-        <p>错误类型：{{type}}</p>
-        <p>将在3秒后返回主页</p>
+        <div class="alert alert-danger text-center p-5 mb-4">
+            <h1 class="title">错误！</h1>
+            <p>错误类型：{{type}}</p>
+            <p>将在3秒后返回主页</p>
+            <div class="progress mt-3">
+                <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+            </div>
+        </div>
         <script>
             setTimeout(function() {
                 window.location.href = "/";
             }, 3000);
         </script>
-    </body>
+    </div>
+</body>
 
     </html>
