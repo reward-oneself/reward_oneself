@@ -4,7 +4,8 @@
     <title>设置休息工作时间比例</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
     <script>
         function validateForm() {
             const input = document.getElementById('rest_time_to_work_ratio').value;
@@ -30,14 +31,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>设置休息与工作时间比例</h1>
+<div class="card mb-4">
+<div class="card-body">
+        <h1 class="title">设置休息与工作时间比例</h1>
         <b>休息时间的计算公式为：休息时间 = 工作时间 ÷ 休息时间与工作时间比例</b>
         <p>默认值为5（标准番茄钟比例），推荐范围为4~7，容许最小值为1</p>
-        <form method="POST" action="/settings_submit" onsubmit="return validateForm()">
+        <form method="POST" action="/settings_submit" onsubmit="return validateForm()" class="container mt-4" style="max-width: 600px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="rest_time_to_work_ratio">休息时间与工作时间比例（正整数）:</label>
-            <input type="text" id="rest_time_to_work_ratio" name="rest_time_to_work_ratio" required>
-            <button type="submit">💾保存设置</button>
+            <input class="form-control" type="number" id="rest_time_to_work_ratio" name="rest_time_to_work_ratio" required>
+            <button type="submit" class="btn btn-success">💾保存设置</button>
         </form>
         <p><a href="/">🏠返回主页</a></p>
     </div>

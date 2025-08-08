@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -25,28 +25,37 @@
         <!-- 添加移动端适配视口设置 -->
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>删除奖励或任务</title>
     </head>
 
     <body>
-        <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="{{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+            <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+<h1 class="title">删除</h1>
+        <div class="container mt-4" style="max-width: 800px;">
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/remove_submit" method="post">
+                {{text|safe}}
+                <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                <input name="type" type="hidden" value="{{type}}">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger">🗑️删除</button>
+                    <button onclick="window.location.href='/'", type="button" class="btn btn-secondary">🏠取消</button>
+                </div>
+            </form>
         </div>
-        <h1>删除</h1>
-        <form action="/remove_submit" method="post">
-            {{text|safe}}
-            <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <input name="type" type="hidden" value="{{type}}">
-            <button type="submit">🗑️删除</button>
-            <button onclick="window.location.href='/'" type="button">🏠取消</button>
-        </form>
+    </div>
+</div>
     </body>
 
     </html>

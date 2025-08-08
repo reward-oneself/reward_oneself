@@ -28,11 +28,13 @@
     <!-- 添加移动端适配视口设置 -->
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
     <title>积分操作结果</title>
 </head>
 
 <body>
+    <div class="container mt-4" style="max-width: 600px;">
     <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -42,22 +44,31 @@
         {% endif %}
         {% endwith %}
     </div>
-    <h1>{{name}}兑换{{result}}</h1>
+    <div class="card mb-4 text-center">
+    <div class="card-body">
+    <h1 class="title">{{name}}兑换{{result}}</h1>
     <h2>现在积分是：{{point}}</h2>
+    </div>
+    </div>
 
     {% if from_page == "timer" %}
     <p>本阶段任务已完成。请按下方选择返回主页或继续下轮计时</p>
 
-    <form action="/timer_submit" method="post" style="margin: 0px;">
-        <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="name" value="{{name}}">
-        <input type="hidden" name="value" value="{{value}}">
-        <input type="hidden" name="time" value="{{time}}">
-        <input type="hidden" name="repeat" value="{{repeat}}">
-        <button type="submit">继续计时</button>
-    </form>
-
-    <button type="button" onclick="window.location.href='/'">🏠返回主页</button>
+    <div class="card mb-4">
+    <div class="card-body">
+        <form action="/timer_submit" method="post">
+            <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="name" value="{{name}}">
+            <input type="hidden" name="value" value="{{value}}">
+            <input type="hidden" name="time" value="{{time}}">
+            <input type="hidden" name="repeat" value="{{repeat}}">
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">⏳继续计时</button>
+                <button type="button" onclick="window.location.href='/'", class="btn btn-secondary">🏠返回主页</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     {% else %}
     <!-- 3秒后自动返回主页 -->

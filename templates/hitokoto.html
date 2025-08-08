@@ -25,11 +25,13 @@
     <!-- 添加移动端适配视口设置 -->
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
     <title>更改一言喜好</title>
 </head>
 
 <body>
+<div class="container mt-4" style="max-width: 800px;">
     <div class="flashes" style="text-align: center; background-color: rgba(255, 123, 0, 0.548); color: white;">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -39,10 +41,12 @@
         {% endif %}
         {% endwith %}
     </div>
-    <h1>更改一言喜好</h1>
+    <h1 class="title">更改一言喜好</h1>
     <b>不选与全选效果一致</b>
-    <form action="/hitokoto_submit" method="post">
-        <div style="margin: 20px;">
+    <div class="card mb-4">
+<div class="card-body">
+<form action="/hitokoto_submit" method="post">
+        <div class="mb-3">
             <div>
                 <input type="checkbox" name="love" id="A" value="?c=a&">
                 <label for="A">动画</label>
@@ -93,7 +97,10 @@
             </div>
         </div>
         <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-primary">💾提交</button>
+</form>
+</div>
+</div>
+        <button type="submit" class="btn btn-primary w-100">💾提交</button>
     </form>
 </body>
 
