@@ -451,13 +451,10 @@ def point():
                 from_page=from_page,
                 value=point_change,
                 time=time,
-
                 repeat=repeat,
             )
     else:
-        return timer(
-            name=name, value=point_change, time=time, repeat=repeat
-        )
+        return timer(name=name, value=point_change, time=time, repeat=repeat)
 
 
 # 计时器逻辑：首先来到/point路由，判断是否是定时任务（时间不为0）
