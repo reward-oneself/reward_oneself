@@ -17,20 +17,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import json
-import sys
+import functools
 from typing import Any, Dict, Optional  # 添加缺失的类型导入
 
 import flask_login
 from flask import (
     Flask,
+    Response,
     flash,
     redirect,
     render_template,
     request,
     send_from_directory,
     url_for,
-    Response
 )
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -38,8 +37,9 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.exc import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import settings
 from hitokoto import get_hitokoto
-import functools
+
 
 def error_handler(func):
     @functools.wraps(func)
@@ -52,48 +52,28 @@ def error_handler(func):
             print(f"Database error: {str(e)}")
             return render_template("error.html", type=error_info)
         except ValueError as e:
-            error_info = getattr(e, 'info', "输入的值格式不正确，请检查后重新操作。")
+            error_info = getattr(
+                e, "info", "输入的值格式不正确，请检查后重新操作。"
+            )
             print(f"Validation error: {str(e)}")
             return render_template("error.html", type=error_info)
         except Exception as e:
             error_info = "很抱歉，系统出现未知错误，请稍后再试。"
             print(f"Unexpected error: {str(e)}")
             return render_template("error.html", type=error_info)
+
     return wrapper
 
 
 app = Flask(__name__)
-try:
-    with open("settings.json", "r", encoding="utf-8") as f:
-        settings = json.load(f)
-        DATA = settings["data"]
-        KEY = settings["key"]
-        DEVELOPMENT = settings["development"]
-        LOCAL_MODE = settings["local_mode"]
-        HITOKOTO_URL = settings["hitokoto_url"]  
-        if LOCAL_MODE == "True":
-            LOCAL_MODE = True
-        else:
-            LOCAL_MODE = False
-except FileNotFoundError:
-    with open("settings.json", "w", encoding="utf-8") as f:
-        settings = {
-            "data": "sqlite:///data.db",
-            "key": "key",
-            "development": "True",
-            "hitokoto_url": "https://v1.hitokoto.cn/",
-            "local_mode": "False",
-        }
-        json.dump(settings, f, ensure_ascii=False, indent=4)
-        sys.exit()
-except KeyError as e:
-    print(f"配置文件中缺少键，错误信息：{e}")
-    sys.exit()
 
-app.config["SQLALCHEMY_DATABASE_URI"] = DATA
-app.config["SECRET_KEY"] = KEY
-app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 24 * 30  # 每30天强制自动登录
-app.config['WTF_CSRF_TIME_LIMIT'] = 60 * 60 * 2 #会话限制两小时
+
+app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
+app.config["SECRET_KEY"] = settings.KEY
+app.config["PERMANENT_SESSION_LIFETIME"] = (
+    60 * 60 * 24 * 30
+)  # 每30天强制自动登录
+app.config["WTF_CSRF_TIME_LIMIT"] = 60 * 60 * 2  # 会话限制两小时
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -182,11 +162,13 @@ def finish_sound():
     """完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432"""
     return send_from_directory(app.static_folder, "finish.wav")
 
+
 @app.route("/LICENSE")
 def license():
     with open("LICENSE", "r", encoding="utf-8") as f:
         license_text = f.read()
     return Response(license_text, mimetype="text/plain")
+
 
 @app.route("/LICENSES")
 def licenses():
@@ -194,11 +176,13 @@ def licenses():
         licenses_text = f.read()
     return Response(licenses_text, mimetype="text/plain")
 
+
 @app.route("/LICENSES_NOT_SOFTWARE")
 def licenses_not_software():
     with open("LICENSES_NOT_SOFTWARE", "r", encoding="utf-8") as f:
         licenses_not_software_text = f.read()
     return Response(licenses_not_software_text, mimetype="text/plain")
+
 
 @app.route("/heartbeat")
 @flask_login.login_required
@@ -208,6 +192,7 @@ def heartbeat():
     用于计时器页面保持会话活跃，防止长时间计时期间会话过期
     """
     return "", 204  # 返回空内容和204状态码
+
 
 @app.route("/login")
 def login():
@@ -219,14 +204,14 @@ def login():
 def login_submit():
     input_username = request.form.get("username")
     input_password = request.form.get("password")
-    
+
     if not input_username or not input_password:
         raise ValueError(info="用户名和密码不能为空")
-    
+
     user = User.query.filter_by(username=input_username).first()
     if not user or not check_password_hash(user.password, input_password):
         raise ValueError(info="用户名或密码错误")
-    
+
     flask_login.login_user(user)
     return redirect(url_for("index"))
 
@@ -241,7 +226,7 @@ def register():
 def register_submit():
     input_username = request.form.get("username")
     input_password = request.form.get("password")
-    
+
     if not input_username or not input_password:
         raise ValueError(info="用户名和密码不能为空")
     if len(input_password) < 6:
@@ -251,7 +236,7 @@ def register_submit():
 
     user = User(
         username=input_username,
-        password=generate_password_hash(input_password)
+        password=generate_password_hash(input_password),
     )
     db.session.add(user)
     db.session.flush()  # 获取生成的user.id
@@ -266,7 +251,7 @@ def register_submit():
 
     # 最终提交
     db.session.commit()
-    
+
     flash("注册成功，请登录")
     return redirect(url_for("login"))
 
@@ -330,7 +315,7 @@ def index():
         )
 
     love = user.user_data.love
-    hitokoto = get_hitokoto(HITOKOTO_URL, love, LOCAL_MODE)
+    hitokoto = get_hitokoto(settings.HITOKOTO_URL, love, settings.LOCAL_MODE)
     return render_template(
         "index.html",
         username=user.username,
@@ -344,8 +329,11 @@ def index():
 @app.route("/hitokoto")
 @flask_login.login_required
 def hitokoto():
-    if LOCAL_MODE:
-        return render_template('error.html', type='服务器一言设置为local模式，只支持显示存储在服务器上的诗词库')
+    if settings.LOCAL_MODE:
+        return render_template(
+            "error.html",
+            type="服务器一言设置为local模式，只支持显示存储在服务器上的诗词库",
+        )
     return render_template("hitokoto.html")
 
 
@@ -369,7 +357,7 @@ def hitokoto_submit():
 
 @app.route("/settings")
 @flask_login.login_required
-def settings():
+def setting():
     return render_template("settings.html")
 
 
@@ -418,7 +406,7 @@ def point():
             return ("失败，积分不足", False)
 
         user.user_data.point = updated_point
-        
+
         if type == "reward" or repeat:
             return ("成功", False)
 
@@ -441,7 +429,9 @@ def point():
 
     if time == 0:
         result, delete = process_point_change(type="task", repeat=repeat)
-        return render_template("point.html", result=result, name=name, point=user.user_data.point)
+        return render_template(
+            "point.html", result=result, name=name, point=user.user_data.point
+        )
 
     if from_page == "timer":
         result, delete = process_point_change(type="task", repeat=repeat)
@@ -460,12 +450,13 @@ def point():
                 point=user.user_data.point,
                 from_page=from_page,
                 value=point_change,
-                time=changed_time,
+                time=time,
+
                 repeat=repeat,
             )
     else:
         return timer(
-            name=name, value=point_change, time=changed_time, repeat=repeat
+            name=name, value=point_change, time=time, repeat=repeat
         )
 
 
@@ -533,7 +524,7 @@ def add_reward_submit():
     """
     name = request.form.get("name")
     points = int(request.form.get("points"))
-    
+
     if not points > 0:
         raise ValueError(info="积分值必须为正整数")
 
@@ -592,15 +583,10 @@ def add_task_submit():
         priority = "max"
     else:
         if time == 0:
-            priority = round(
-                int(importance) * 4 + urgent * 2 + value * 3
-            )
+            priority = round(int(importance) * 4 + urgent * 2 + value * 3)
         else:
             priority = round(
-                int(importance) * 4
-                + urgent * 2
-                + value * 3
-                - time / 10
+                int(importance) * 4 + urgent * 2 + value * 3 - time / 10
             )
 
     task[name] = {
@@ -679,7 +665,6 @@ def remove_submit() -> str:
 
         return updated_data
 
-
     if type_name == "reward":
         data = user.user_data.reward
         user.user_data.reward = instead_data(data)
@@ -746,7 +731,7 @@ if __name__ == "__main__":
     - 监听所有网络接口（便于容器部署）
     - 使用  默认端口5000
     """
-    if DEVELOPMENT == "True":
+    if settings.DEVELOPMENT == "True":
         app.run(host="0.0.0.0", port=8080, debug=True)
     else:
         print("生产环境下不宜使用开发服务器启动，请使用gunicorn启动程序")

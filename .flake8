@@ -1,0 +1,4 @@
+[flake8]
+exclude = .venv,__pycache__,build,dist,*.egg
+ingnore = E501,E203,W503
+max-line-length = 100
