@@ -17,20 +17,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import json
-import sys
+import functools
 from typing import Any, Dict, Optional  # 添加缺失的类型导入
 
 import flask_login
 from flask import (
     Flask,
+    Response,
     flash,
     redirect,
     render_template,
     request,
     send_from_directory,
     url_for,
-    Response
 )
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -38,40 +37,43 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.exc import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import settings
 from hitokoto import get_hitokoto
 
-app = Flask(__name__)
-try:
-    with open("settings.json", "r", encoding="utf-8") as f:
-        settings = json.load(f)
-        DATA = settings["data"]
-        KEY = settings["key"]
-        DEVELOPMENT = settings["development"]
-        LOCAL_MODE = settings["local_mode"]
-        HITOKOTO_URL = settings["hitokoto_url"]  
-        if LOCAL_MODE == "True":
-            LOCAL_MODE = True
-        else:
-            LOCAL_MODE = False
-except FileNotFoundError:
-    with open("settings.json", "w", encoding="utf-8") as f:
-        settings = {
-            "data": "sqlite:///data.db",
-            "key": "key",
-            "development": "True",
-            "hitokoto_url": "https://v1.hitokoto.cn/",
-            "local_mode": "False",
-        }
-        json.dump(settings, f, ensure_ascii=False, indent=4)
-        sys.exit()
-except KeyError as e:
-    print(f"配置文件中缺少键，错误信息：{e}")
-    sys.exit()
 
-app.config["SQLALCHEMY_DATABASE_URI"] = DATA
-app.config["SECRET_KEY"] = KEY
-app.config["PERMANENT_SESSION_LIFETIME"] = 60 * 60 * 24 * 30  # 每30天强制自动登录
-app.config['WTF_CSRF_TIME_LIMIT'] = 60 * 60 * 2 #会话限制两小时
+def error_handler(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except DatabaseError as e:
+            db.session.rollback()
+            error_info = "抱歉，系统与数据库交互时出现问题，请稍后再试。"
+            print(f"Database error: {str(e)}")
+            return render_template("error.html", type=error_info)
+        except ValueError as e:
+            error_info = getattr(
+                e, "info", "输入的值格式不正确，请检查后重新操作。"
+            )
+            print(f"Validation error: {str(e)}")
+            return render_template("error.html", type=error_info)
+        except Exception as e:
+            error_info = "很抱歉，系统出现未知错误，请稍后再试。"
+            print(f"Unexpected error: {str(e)}")
+            return render_template("error.html", type=error_info)
+
+    return wrapper
+
+
+app = Flask(__name__)
+
+
+app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
+app.config["SECRET_KEY"] = settings.KEY
+app.config["PERMANENT_SESSION_LIFETIME"] = (
+    60 * 60 * 24 * 30
+)  # 每30天强制自动登录
+app.config["WTF_CSRF_TIME_LIMIT"] = 60 * 60 * 2  # 会话限制两小时
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -160,11 +162,13 @@ def finish_sound():
     """完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432"""
     return send_from_directory(app.static_folder, "finish.wav")
 
+
 @app.route("/LICENSE")
 def license():
     with open("LICENSE", "r", encoding="utf-8") as f:
         license_text = f.read()
     return Response(license_text, mimetype="text/plain")
+
 
 @app.route("/LICENSES")
 def licenses():
@@ -172,11 +176,13 @@ def licenses():
         licenses_text = f.read()
     return Response(licenses_text, mimetype="text/plain")
 
+
 @app.route("/LICENSES_NOT_SOFTWARE")
 def licenses_not_software():
     with open("LICENSES_NOT_SOFTWARE", "r", encoding="utf-8") as f:
         licenses_not_software_text = f.read()
     return Response(licenses_not_software_text, mimetype="text/plain")
+
 
 @app.route("/heartbeat")
 @flask_login.login_required
@@ -187,21 +193,27 @@ def heartbeat():
     """
     return "", 204  # 返回空内容和204状态码
 
+
 @app.route("/login")
 def login():
     return render_template("login.html")
 
 
 @app.route("/login_submit", methods=["POST"])
+@error_handler
 def login_submit():
     input_username = request.form.get("username")
     input_password = request.form.get("password")
+
+    if not input_username or not input_password:
+        raise ValueError(info="用户名和密码不能为空")
+
     user = User.query.filter_by(username=input_username).first()
-    if user and check_password_hash(user.password, input_password):
-        flask_login.login_user(user)
-        return redirect(url_for("index"))
-    else:
-        return render_template("error.html", type="用户名或密码错误")
+    if not user or not check_password_hash(user.password, input_password):
+        raise ValueError(info="用户名或密码错误")
+
+    flask_login.login_user(user)
+    return redirect(url_for("index"))
 
 
 @app.route("/register")
@@ -210,23 +222,22 @@ def register():
 
 
 @app.route("/register_submit", methods=["POST"])
+@error_handler
 def register_submit():
     input_username = request.form.get("username")
     input_password = request.form.get("password")
+
     if not input_username or not input_password:
-        flash("用户名和密码不能为空")
-        return redirect(url_for("register"))
+        raise ValueError(info="用户名和密码不能为空")
     if len(input_password) < 6:
-        flash("密码长度至少为6位")
-        return redirect(url_for("register"))
+        raise ValueError(info="密码长度至少为6位")
     if User.query.filter_by(username=input_username).first():
-        flash("用户名已存在")
-        return redirect(url_for("register"))
-    # 创建用户实例并手动赋值字段
-    # 第一步：创建用户并获取ID
-    user = User()
-    user.username = input_username
-    user.password = generate_password_hash(input_password)
+        raise ValueError(info="用户名已存在")
+
+    user = User(
+        username=input_username,
+        password=generate_password_hash(input_password),
+    )
     db.session.add(user)
     db.session.flush()  # 获取生成的user.id
 
@@ -240,6 +251,7 @@ def register_submit():
 
     # 最终提交
     db.session.commit()
+
     flash("注册成功，请登录")
     return redirect(url_for("login"))
 
@@ -303,7 +315,7 @@ def index():
         )
 
     love = user.user_data.love
-    hitokoto = get_hitokoto(HITOKOTO_URL, love, LOCAL_MODE)
+    hitokoto = get_hitokoto(settings.HITOKOTO_URL, love, settings.LOCAL_MODE)
     return render_template(
         "index.html",
         username=user.username,
@@ -317,66 +329,52 @@ def index():
 @app.route("/hitokoto")
 @flask_login.login_required
 def hitokoto():
-    if LOCAL_MODE:
-        return render_template('error.html', type='服务器一言设置为local模式，只支持显示存储在服务器上的诗词库')
+    if settings.LOCAL_MODE:
+        return render_template(
+            "error.html",
+            type="服务器一言设置为local模式，只支持显示存储在服务器上的诗词库",
+        )
     return render_template("hitokoto.html")
 
 
 @app.route("/hitokoto_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def hitokoto_submit():
 
     hitokoto = request.form.to_dict()
     hitokoto_text = ""
     for k, v in hitokoto.items():
         if k != "csrf_token":
-            hitokoto_text = hitokoto_text + v
+            hitokoto_text += v
 
     user = flask_login.current_user
     db.session.refresh(user.user_data)
-
     user.user_data.love = hitokoto_text
-
-    try:
-        db.session.commit()
-        return redirect(url_for("index"))
-
-    except DatabaseError:
-        db.session.rollback()
-        return render_template("error.html", type="数据库错误")
-    except Exception:
-        return render_template("error.html", type="其他错误")
+    db.session.commit()
+    return redirect(url_for("index"))
 
 
 @app.route("/settings")
 @flask_login.login_required
-def settings():
+def setting():
     return render_template("settings.html")
 
 
 @app.route("/settings_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def settings_submit():
     ratio = request.form.get("rest_time_to_work_ratio")
-    try:
-        ratio = int(ratio)
-        if ratio <= 0:
-            raise ValueError
-    except ValueError:
-        return render_template("error.html", type="比例必须为正整数")
+    ratio = int(ratio)
+    if ratio <= 0:
+        raise ValueError(info="比例必须为正整数")
 
     user = flask_login.current_user
     db.session.refresh(user.user_data)
     user.user_data.rest_time_to_work_ratio = ratio
-
-    try:
-        db.session.commit()
-        return redirect(url_for("index"))
-    except DatabaseError:
-        db.session.rollback()
-        return render_template("error.html", type="数据库错误")
-    except Exception:
-        return render_template("error.html", type="其他错误")
+    db.session.commit()
+    return redirect(url_for("index"))
 
 
 @app.route("/about")
@@ -386,62 +384,40 @@ def about():
 
 @app.route("/point", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def point():
     user = flask_login.current_user
-    point_change = request.form.get("point_change")
+    point_change = int(request.form.get("point_change"))
     name = request.form.get("name")
-    repeat = request.form.get("repeat")
-    # 以下参数为可选参数
+    repeat = request.form.get("repeat") == "True"
     from_page = request.form.get("from")
-    time = request.form.get("time")
 
-    try:
-        point_change = int(point_change)
-        # 一样的坑
-        if repeat == "False":
-            repeat = False
-        else:
-            repeat = True
-    except ValueError:
-        return render_template("error.html", type="数据格式错误")
+    time = int(request.form.get("time"))
 
     def process_point_change(type, repeat):
         """处理积分变更，返回结果"""
 
         if not point_change and name:
-            return render_template("error.html", type="参数错误")
+            raise ValueError(info="参数错误")
 
         # 处理积分变更
         updated_point = user.user_data.point + point_change
-        if updated_point >= 0:
-            user.user_data.point = updated_point
-            db.session.commit()
-            result = "成功"
-        else:
-            result = "失败，积分不足"
+        if updated_point < 0:
+            return ("失败，积分不足", False)
 
-        # 如果是奖励或者重复任务，则跳过删除的逻辑
+        user.user_data.point = updated_point
+
         if type == "reward" or repeat:
-            return (result, False)
+            return ("成功", False)
 
-        # 删除不重复的任务
         try:
             task = dict(user.user_data.task)
             del task[name]
             user.user_data.task = task
             db.session.commit()
-            result = "成功。因为没有重复，所以该任务已自动删除"
-            delete = True
-        except DatabaseError:
-            result = "兑换成功，但是因为删除任务时数据库出错，该任务没有被删除"
-            delete = False
-        except Exception:
-            result = (
-                "兑换成功，但是因为删除任务时出现未知错误，该任务没有被删除"
-            )
-            delete = False
-
-        return (result, delete)
+            return ("成功。该任务已自动删除", True)
+        except KeyError:
+            return ("成功。任务不存在", False)
 
     if point_change < 0:
         # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
@@ -451,19 +427,14 @@ def point():
             "point.html", result=result, name=name, point=user.user_data.point
         )
 
-    # 奖励在此前已经return，而任务必然带有time属性，所以此处不需要判断
-    changed_time = int(time)
-    if changed_time == 0:
-        return_value = process_point_change(type="task", repeat=repeat)
-        result = return_value[0]
+    if time == 0:
+        result, delete = process_point_change(type="task", repeat=repeat)
         return render_template(
             "point.html", result=result, name=name, point=user.user_data.point
         )
-    elif from_page == "timer":
-        return_value = process_point_change(type="task", repeat=repeat)
-        result = return_value[0]
-        delete = return_value[1]
-        # 如果任务删除，直接返回结果页面
+
+    if from_page == "timer":
+        result, delete = process_point_change(type="task", repeat=repeat)
         if delete:
             return render_template(
                 "point.html",
@@ -479,13 +450,11 @@ def point():
                 point=user.user_data.point,
                 from_page=from_page,
                 value=point_change,
-                time=changed_time,
+                time=time,
                 repeat=repeat,
             )
     else:
-        return timer(
-            name=name, value=point_change, time=changed_time, repeat=repeat
-        )
+        return timer(name=name, value=point_change, time=time, repeat=repeat)
 
 
 # 计时器逻辑：首先来到/point路由，判断是否是定时任务（时间不为0）
@@ -540,6 +509,7 @@ def add_task():
 
 @app.route("/add_reward_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def add_reward_submit():
     """
     处理添加新奖励的提交请求
@@ -550,32 +520,24 @@ def add_reward_submit():
     4. 提交事务或在出错时回滚
     """
     name = request.form.get("name")
-    points = request.form.get("points")
+    points = int(request.form.get("points"))
 
-    try:
-        changed_points = int(points)
-    except ValueError:
-        return render_template("error.html", type="数据格式错误")
-
-    if not changed_points > 0:
-        return render_template("error.html", type="参数错误或参数不符合要求")
+    if not points > 0:
+        raise ValueError(info="积分值必须为正整数")
 
     user = flask_login.current_user
     # 创建当前奖励数据的副本并完全替换原有字段
     reward = dict(user.user_data.reward)  # 创建新对象确保SQLAlchemy检测到变化
-    reward[name] = changed_points
+    reward[name] = points
     user.user_data.reward = reward  # 完全替换字典触发数据库更新
 
-    try:
-        db.session.commit()  # 提交数据库事务
-        return redirect(url_for("index"))
-    except Exception:
-        db.session.rollback()  # 回滚事务
-        return render_template("error.html", type="数据库错误")
+    db.session.commit()  # 提交数据库事务
+    return redirect(url_for("index"))
 
 
 @app.route("/add_task_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def add_task_submit():
     """
     处理添加新任务的提交请求
@@ -586,46 +548,28 @@ def add_task_submit():
     4. 提交事务或在出错时回滚
     """
     name = request.form.get("name")
-    points = request.form.get("points")
-    time = request.form.get("time")
+    points = int(request.form.get("points"))
+    time = int(request.form.get("time"))
     importance = request.form.get("importance")
-    value = request.form.get("value")
-    urgent = request.form.get("urgent")
-    repeat = request.form.get("repeat")
+    value = int(request.form.get("value"))
+    urgent = int(request.form.get("urgent"))
+    repeat = request.form.get("repeat") == "True"
 
     def check():
-        global changed_points
-        global changed_time
-        global changed_value
-        global changed_urgent
-        global changed_repeat
-        try:
-            changed_points = int(points)
-            changed_time = int(time)
-            changed_value = int(value)
-            changed_urgent = int(urgent)
-            # 踩过的坑：这里的转化不能用bool()，Python 中所有非空字符串都会被视为 True，与字符串内容无关。
-            if repeat == "True":
-                changed_repeat = True
-            else:
-                changed_repeat = False
-        except ValueError:
-            return False
-        else:
-            return (
-                name
-                and name != ""
-                and changed_points > 0
-                and changed_time >= 0
-                and changed_value > 0
-                and changed_value <= 3
-                and changed_urgent > 0
-                and changed_urgent <= 3
-                and importance in ["0", "3", "4", "max"]
-            )
+        return (
+            name
+            and name != ""
+            and points > 0
+            and time >= 0
+            and value > 0
+            and value <= 3
+            and urgent > 0
+            and urgent <= 3
+            and importance in ["0", "3", "4", "max"]
+        )
 
     if not check():
-        return render_template("error.html", type="参数错误或参数不符合要求")
+        raise ValueError()
 
     user = flask_login.current_user
     # 创建当前任务数据的副本并完全替换原有字段
@@ -635,48 +579,36 @@ def add_task_submit():
     if importance == "max":
         priority = "max"
     else:
-
-        if changed_time == 0:
-            priority = round(
-                int(importance) * 4 + changed_urgent * 2 + changed_value * 3
-            )
+        if time == 0:
+            priority = round(int(importance) * 4 + urgent * 2 + value * 3)
         else:
             priority = round(
-                int(importance) * 4
-                + changed_urgent * 2
-                + changed_value * 3
-                - changed_time / 10
+                int(importance) * 4 + urgent * 2 + value * 3 - time / 10
             )
 
     task[name] = {
-        "points": changed_points,
-        "time": changed_time,
+        "points": points,
+        "time": time,
         "priority": priority,
-        "repeat": changed_repeat,
+        "repeat": repeat,
     }
 
     user.user_data.task = task  # 完全替换字典触发数据库更新
 
-    try:
-        db.session.commit()  # 提交数据库事务
-        return redirect(url_for("index"))
-    except DatabaseError:
-        db.session.rollback()  # 回滚事务
-        return render_template("error.html", type="数据库错误")
-    except Exception:
-        db.session.rollback()  # 回滚事务
-        return render_template("error.html", type="未知错误")
+    db.session.commit()  # 提交数据库事务
+    return redirect(url_for("index"))
 
 
 @app.route("/remove", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def remove():
     """
     渲染移除任务或奖励的页面，根据提供的类型参数，并列出所有可移除的项。
     """
     type_name = request.form.get("type")
     if not type_name:
-        return render_template("error.html", type="参数错误")
+        raise ValueError(info="参数错误")
 
     user = flask_login.current_user
 
@@ -695,6 +627,7 @@ def remove():
 
 @app.route("/remove_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def remove_submit() -> str:
     """
     处理删除任务/奖励的提交请求
@@ -713,7 +646,7 @@ def remove_submit() -> str:
     form_data: Dict[str, str] = request.form.to_dict()
 
     if not type_name:
-        return render_template("error.html", type="参数错误或参数不符合要求")
+        raise ValueError()
     user = flask_login.current_user
 
     def instead_data(data, form_data=form_data):
@@ -729,22 +662,16 @@ def remove_submit() -> str:
 
         return updated_data
 
-    try:
-        if type_name == "reward":
-            data = user.user_data.reward
-            user.user_data.reward = instead_data(data)
-        else:
-            data = user.user_data.task
-            user.user_data.task = instead_data(data)
+    if type_name == "reward":
+        data = user.user_data.reward
+        user.user_data.reward = instead_data(data)
+    else:
+        data = user.user_data.task
+        user.user_data.task = instead_data(data)
 
-        db.session.commit()  # 提交数据库事务
+    db.session.commit()  # 提交数据库事务
 
-        return redirect(url_for("index"))
-    except DatabaseError:
-        db.session.rollback()  # 回滚事务
-        return render_template("error.html", type="数据库错误")
-    except Exception:
-        return render_template("error.html", type="未知错误")
+    return redirect(url_for("index"))
 
 
 @app.route("/delete_account")
@@ -760,6 +687,7 @@ def delete_account():
 
 @app.route("/delete_account_submit", methods=["POST"])
 @flask_login.login_required
+@error_handler
 def delete_account_submit():
     """
     处理账户注销请求
@@ -775,17 +703,11 @@ def delete_account_submit():
     - 确保级联删除机制正常工作
     """
     user = flask_login.current_user
-    try:
-        db.session.delete(user)
-        db.session.commit()
-        flask_login.logout_user()
-        flash("您的账户已成功注销")
-        return redirect(url_for("index"))
-    except DatabaseError:
-        db.session.rollback()
-        return render_template("error.html", type="注销失败，数据库错误")
-    except Exception:
-        return render_template("error.html", type="注销失败，未知错误")
+    db.session.delete(user)
+    db.session.commit()
+    flask_login.logout_user()
+    flash("您的账户已成功注销")
+    return redirect(url_for("index"))
 
 
 @login_manager.unauthorized_handler
@@ -806,7 +728,7 @@ if __name__ == "__main__":
     - 监听所有网络接口（便于容器部署）
     - 使用  默认端口5000
     """
-    if DEVELOPMENT == "True":
+    if settings.DEVELOPMENT == "True":
         app.run(host="0.0.0.0", port=8080, debug=True)
     else:
         print("生产环境下不宜使用开发服务器启动，请使用gunicorn启动程序")
