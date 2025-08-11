@@ -17,55 +17,27 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import functools
-from typing import Any, Dict, Optional  # 添加缺失的类型导入
-
 import flask_login
 from flask import (
     Flask,
     Response,
-    flash,
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
-from flask_login import LoginManager, UserMixin
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import CSRFProtect
-from sqlalchemy.exc import DatabaseError
-from werkzeug.security import check_password_hash, generate_password_hash
 
 import settings
+from auth.auth import auth_blueprint
+from extensions import csrf, db, error_handler, login_manager
 from hitokoto import get_hitokoto
-
-
-def error_handler(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except DatabaseError as e:
-            db.session.rollback()
-            error_info = "抱歉，系统与数据库交互时出现问题，请稍后再试。"
-            print(f"Database error: {str(e)}")
-            return render_template("error.html", type=error_info)
-        except ValueError as e:
-            error_info = getattr(
-                e, "info", "输入的值格式不正确，请检查后重新操作。"
-            )
-            print(f"Validation error: {str(e)}")
-            return render_template("error.html", type=error_info)
-        except Exception as e:
-            error_info = "很抱歉，系统出现未知错误，请稍后再试。"
-            print(f"Unexpected error: {str(e)}")
-            return render_template("error.html", type=error_info)
-
-    return wrapper
-
+from models import User
 
 app = Flask(__name__)
+
+# 注册auth蓝图
+
+app.register_blueprint(auth_blueprint)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -75,16 +47,16 @@ app.config["PERMANENT_SESSION_LIFETIME"] = (
 )  # 每30天强制自动登录
 app.config["WTF_CSRF_TIME_LIMIT"] = 60 * 60 * 2  # 会话限制两小时
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
 
-# 初始化CSRF保护
-csrf = CSRFProtect(app)
-
-# 初始化LoginManager
-login_manager = LoginManager(app)
+# 初始化扩展
+csrf.init_app(app)
+login_manager.init_app(app)
+db.init_app(app)
 
 
 # 初始化Flask-Migrate
+
+
 def init_db():
     db.create_all()  # 创建所有表
 
@@ -93,74 +65,7 @@ def init_db():
 @login_manager.user_loader
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
-    return User.query.get(int(user_id))  # 假设使用SQLAlchemy的User模型
-
-
-class User(db.Model, UserMixin):
-    """
-    用户模型，继承SQLAlchemy Model基类和Flask-Login UserMixin
-    - id: 主键，自增整数
-    - username: 用户名，唯一且非空
-    - password: 加密后的密码，长度128位
-    - get_id(): 返回字符串类型的用户ID（符合UserMixin要求）
-    - user_data: 与UserData的一对一关系，级联删除
-    """
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
-
-    def get_id(self):
-        return str(self.id)
-
-
-class UserData(db.Model):
-    """
-    用户数据模型，存储积分、任务和奖励信息
-    - id: 主键，自增整数
-    - user_id: 外键，关联User.id，级联删除
-    - reward: JSON字段，存储奖励信息，默认空对象
-    - point: 积分余额，默认0
-    - task: JSON字段，存储任务信息，默认空对象
-    - user: 反向关联User模型，配置级联删除
-    - rest_time_to_work_ratio: 休息时间与工作时间的比例，默认5
-    """
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey("user.id", ondelete="CASCADE"),
-        unique=True,
-        nullable=False,
-    )
-    reward = db.Column(db.JSON, nullable=False, default=lambda: {})
-    point = db.Column(db.Integer, nullable=False, default=0)
-    task = db.Column(db.JSON, nullable=False, default=lambda: {})
-    love = db.Column(db.String(60), nullable=False, default="")
-    rest_time_to_work_ratio = db.Column(db.Integer, nullable=False, default=5)
-    user = db.relationship(
-        "User",
-        backref=db.backref(
-            "user_data", uselist=False, cascade="all, delete-orphan"
-        ),
-    )
-
-
-@app.route("/favicon.ico")
-def favicon():
-    return send_from_directory(app.static_folder, "favicon.ico")
-
-
-@app.route("/timer_sound")
-def timer_sound():
-    """自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361​"""
-    return send_from_directory(app.static_folder, "timer.wav")
-
-
-@app.route("/finish_sound")
-def finish_sound():
-    """完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432"""
-    return send_from_directory(app.static_folder, "finish.wav")
+    return User.query.get(int(user_id))
 
 
 @app.route("/LICENSE")
@@ -192,74 +97,6 @@ def heartbeat():
     用于计时器页面保持会话活跃，防止长时间计时期间会话过期
     """
     return "", 204  # 返回空内容和204状态码
-
-
-@app.route("/login")
-def login():
-    return render_template("login.html")
-
-
-@app.route("/login_submit", methods=["POST"])
-@error_handler
-def login_submit():
-    input_username = request.form.get("username")
-    input_password = request.form.get("password")
-
-    if not input_username or not input_password:
-        raise ValueError(info="用户名和密码不能为空")
-
-    user = User.query.filter_by(username=input_username).first()
-    if not user or not check_password_hash(user.password, input_password):
-        raise ValueError(info="用户名或密码错误")
-
-    flask_login.login_user(user)
-    return redirect(url_for("index"))
-
-
-@app.route("/register")
-def register():
-    return render_template("register.html")
-
-
-@app.route("/register_submit", methods=["POST"])
-@error_handler
-def register_submit():
-    input_username = request.form.get("username")
-    input_password = request.form.get("password")
-
-    if not input_username or not input_password:
-        raise ValueError(info="用户名和密码不能为空")
-    if len(input_password) < 6:
-        raise ValueError(info="密码长度至少为6位")
-    if User.query.filter_by(username=input_username).first():
-        raise ValueError(info="用户名已存在")
-
-    user = User(
-        username=input_username,
-        password=generate_password_hash(input_password),
-    )
-    db.session.add(user)
-    db.session.flush()  # 获取生成的user.id
-
-    # 第二步：创建关联数据
-    user_data = UserData()
-    user_data.user_id = user.id
-    user_data.point = 0
-    user_data.reward = {}
-    user_data.task = {}
-    db.session.add(user_data)
-
-    # 最终提交
-    db.session.commit()
-
-    flash("注册成功，请登录")
-    return redirect(url_for("login"))
-
-
-@app.route("/logout")
-def logout():
-    flask_login.logout_user()
-    return redirect(url_for("login"))
 
 
 @app.route("/")
@@ -642,19 +479,18 @@ def remove_submit() -> str:
     - 参数验证防止无效数据操作
     - 异常处理保证数据一致性
     """
-    type_name: Optional[str] = request.form.get("type")
-    form_data: Dict[str, str] = request.form.to_dict()
+    type_name = request.form.get("type")
+    form_data = request.form.to_dict()
 
     if not type_name:
         raise ValueError()
     user = flask_login.current_user
 
     def instead_data(data, form_data=form_data):
-
         # 创建新对象确保SQLAlchemy检测到变化
-        copy: Dict[str, Any] = dict(data)
+        copy = dict(data)
         # 保留不在form_data中的项
-        updated_data: Dict[str, Any] = {
+        updated_data = {
             name: value
             for name, value in copy.items()
             if name not in form_data
@@ -674,42 +510,6 @@ def remove_submit() -> str:
     return redirect(url_for("index"))
 
 
-@app.route("/delete_account")
-@flask_login.login_required
-def delete_account():
-    """
-    显示注销账户确认页面
-    - 需要登录才能访问
-    - 提供安全提示
-    """
-    return render_template("delete_account.html")
-
-
-@app.route("/delete_account_submit", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def delete_account_submit():
-    """
-    处理账户注销请求
-    业务流程:
-    1. 获取当前用户
-    2. 删除用户记录（级联删除关联数据）
-    3. 清除用户会话
-    4. 重定向到首页
-
-    安全要求:
-    - 必须登录才能访问
-    - 使用POST方法防止CSRF攻击
-    - 确保级联删除机制正常工作
-    """
-    user = flask_login.current_user
-    db.session.delete(user)
-    db.session.commit()
-    flask_login.logout_user()
-    flash("您的账户已成功注销")
-    return redirect(url_for("index"))
-
-
 @login_manager.unauthorized_handler
 def unauthorized():
     """
@@ -718,7 +518,7 @@ def unauthorized():
     - 重定向到登录页面保持用户体验一致性
     - 符合Flask-Login的认证规范要求
     """
-    return redirect(url_for("login"))
+    return redirect(url_for("auth.login"))
 
 
 if __name__ == "__main__":
