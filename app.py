@@ -30,6 +30,7 @@ import settings
 from auth.auth import auth_blueprint
 from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
+from filehandle import FileHandler
 from hitokoto import get_hitokoto
 from models import User
 
@@ -89,8 +90,8 @@ def index():
     task = user.user_data.task
 
     reward_text = ""
-    with open("partials/reward_text.html") as f:
-        add_text = f.read()
+    file_handler = FileHandler("partials/reward_text.html")
+    add_text = file_handler.read()
     for name, value in reward.items():
         reward_text += add_text.format(name=name, value=value)
 
@@ -114,8 +115,8 @@ def index():
 
     task_text = ""
     sort_task_name_list = sort_task()
-    with open("partials/task_text.html") as f:
-        add_text = f.read()
+    file_handler = FileHandler("partials/task_text.html")
+    add_text = file_handler.read()
     for i in sort_task_name_list:
         task_data = task.get(i)
         if task_data["repeat"]:
@@ -435,8 +436,8 @@ def remove():
         items = user.user_data.task
 
     text = ""
-    with open("partials/remove_text.html", encoding="utf-8") as f:
-        add_text = f.read()
+    file_handler = FileHandler("partials/remove_text.html")
+    add_text = file_handler.read()
     for name in items.keys():
         text += add_text.format(name=name)
     return render_template("remove.html", type=type_name, text=text)
