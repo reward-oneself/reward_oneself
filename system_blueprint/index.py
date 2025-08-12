@@ -6,7 +6,9 @@ from extensions import db
 from filehandle import FileHandler
 from hitokoto import get_hitokoto
 
-index_blueprint = Blueprint("index_blueprint", __name__, template_folder="templates")
+index_blueprint = Blueprint(
+    "index_blueprint", __name__, template_folder="templates"
+)
 
 
 @index_blueprint.route("/")
