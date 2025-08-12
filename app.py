@@ -34,6 +34,8 @@ from filehandle import FileHandler
 from models import User
 from point_and_timer_blueprint.point import point_blueprint
 from point_and_timer_blueprint.timer_submit import timer_submit_blueprint
+from reward_and_task_blueprint.reward_blueprint import reward_blueprint
+from reward_and_task_blueprint.task_blueprint import task_blueprint
 from system_blueprint.heartbeat import heartbeat_blueprint
 from system_blueprint.hitokoto import hitokoto_blueprint
 from system_blueprint.index import index_blueprint
@@ -50,6 +52,8 @@ app.register_blueprint(hitokoto_blueprint)
 app.register_blueprint(heartbeat_blueprint)
 app.register_blueprint(point_blueprint)
 app.register_blueprint(timer_submit_blueprint)
+app.register_blueprint(reward_blueprint)
+app.register_blueprint(task_blueprint)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -78,116 +82,6 @@ def init_db():
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
     return User.query.get(int(user_id))
-
-
-@app.route("/add_reward")
-@flask_login.login_required
-def add_reward():
-    """
-    渲染添加新奖励的页面
-    """
-    return render_template("add_new_reward.html")
-
-
-@app.route("/add_task")
-@flask_login.login_required
-def add_task():
-    """
-    渲染添加新任务的页面
-    """
-    return render_template("add_new_task.html")
-
-
-@app.route("/add_reward_submit", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def add_reward_submit():
-    """
-    处理添加新奖励的提交请求
-    业务流程：
-    1. 验证参数有效性（名称、积分值）
-    2. 创建奖励数据副本并更新
-    3. 完全替换原有JSON字段触发数据库更新
-    4. 提交事务或在出错时回滚
-    """
-    name = request.form.get("name")
-    points = int(request.form.get("points"))
-
-    if not points > 0:
-        raise ValueError(info="积分值必须为正整数")
-
-    user = flask_login.current_user
-    # 创建当前奖励数据的副本并完全替换原有字段
-    reward = dict(user.user_data.reward)  # 创建新对象确保SQLAlchemy检测到变化
-    reward[name] = points
-    user.user_data.reward = reward  # 完全替换字典触发数据库更新
-
-    db.session.commit()  # 提交数据库事务
-    return redirect(url_for("index_blueprint.index"))
-
-
-@app.route("/add_task_submit", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def add_task_submit():
-    """
-    处理添加新任务的提交请求
-    业务流程：
-    1. 验证参数有效性（名称、积分值、时间、重要性等）
-    2. 创建任务数据副本并更新
-    3. 完全替换原有JSON字段触发数据库更新
-    4. 提交事务或在出错时回滚
-    """
-    name = request.form.get("name")
-    points = int(request.form.get("points"))
-    time = int(request.form.get("time"))
-    importance = request.form.get("importance")
-    value = int(request.form.get("value"))
-    urgent = int(request.form.get("urgent"))
-    repeat = request.form.get("repeat") == "True"
-
-    def check():
-        return (
-            name
-            and name != ""
-            and points > 0
-            and time >= 0
-            and value > 0
-            and value <= 3
-            and urgent > 0
-            and urgent <= 3
-            and importance in ["0", "3", "4", "max"]
-        )
-
-    if not check():
-        raise ValueError()
-
-    user = flask_login.current_user
-    # 创建当前任务数据的副本并完全替换原有字段
-    task = dict(user.user_data.task)  # 创建新对象确保SQLAlchemy检测到变化
-    # 构建任务对象
-
-    if importance == "max":
-        priority = "max"
-    else:
-        if time == 0:
-            priority = round(int(importance) * 4 + urgent * 2 + value * 3)
-        else:
-            priority = round(
-                int(importance) * 4 + urgent * 2 + value * 3 - time / 10
-            )
-
-    task[name] = {
-        "points": points,
-        "time": time,
-        "priority": priority,
-        "repeat": repeat,
-    }
-
-    user.user_data.task = task  # 完全替换字典触发数据库更新
-
-    db.session.commit()  # 提交数据库事务
-    return redirect(url_for("index_blueprint.index"))
 
 
 @app.route("/remove", methods=["POST"])
