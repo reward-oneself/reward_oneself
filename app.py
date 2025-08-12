@@ -27,7 +27,7 @@ from flask import (
 )
 
 import settings
-from auth.auth import auth_blueprint
+from auth_blueprint.auth_blueprint import auth_blueprint
 from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
 from filehandle import FileHandler
