@@ -27,11 +27,11 @@ from flask import (
 )
 
 import settings
+from auth_blueprint.auth_blueprint import auth_blueprint
+from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
 from filehandle import FileHandler
 from models import User
-from auth_blueprint.auth_blueprint import auth_blueprint
-from doc_blueprint.doc_blueprint import doc_blueprint
 from system_blueprint.heartbeat import heartbeat_blueprint
 from system_blueprint.hitokoto import hitokoto_blueprint
 from system_blueprint.index import index_blueprint
