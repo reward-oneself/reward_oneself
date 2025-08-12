@@ -18,7 +18,10 @@ def point():
     repeat = request.form.get("repeat") == "True"
     from_page = request.form.get("from")
 
-    time = int(request.form.get("time"))
+    time = request.form.get("time")
+    if time:
+        time = int(time)
+
 
     def process_point_change(type, repeat):
         """处理积分变更，返回结果"""
