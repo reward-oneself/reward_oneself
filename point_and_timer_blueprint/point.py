@@ -22,7 +22,6 @@ def point():
     if time:
         time = int(time)
 
-
     def process_point_change(type, repeat):
         """处理积分变更，返回结果"""
 
