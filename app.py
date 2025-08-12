@@ -32,14 +32,12 @@ from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
 from filehandle import FileHandler
 from models import User
+from point_and_timer_blueprint.point import point_blueprint
+from point_and_timer_blueprint.timer_submit import timer_submit_blueprint
 from system_blueprint.heartbeat import heartbeat_blueprint
 from system_blueprint.hitokoto import hitokoto_blueprint
 from system_blueprint.index import index_blueprint
 from system_blueprint.settings import settings_blueprint
-from point_and_timer_blueprint.point import point_blueprint
-from point_and_timer_blueprint.timer_submit import timer_submit_blueprint
-
-
 
 app = Flask(__name__)
 
@@ -52,7 +50,6 @@ app.register_blueprint(hitokoto_blueprint)
 app.register_blueprint(heartbeat_blueprint)
 app.register_blueprint(point_blueprint)
 app.register_blueprint(timer_submit_blueprint)
-
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -81,6 +78,7 @@ def init_db():
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
     return User.query.get(int(user_id))
+
 
 @app.route("/add_reward")
 @flask_login.login_required

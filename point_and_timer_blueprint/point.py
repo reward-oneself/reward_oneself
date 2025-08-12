@@ -1,10 +1,12 @@
-from flask import Blueprint,request,render_template
 import flask_login
-from extensions import db
-from extensions import error_handler
+from flask import Blueprint, render_template, request
+
+from extensions import db, error_handler
+
 from .timer_render import timer
 
-point_blueprint = Blueprint('point', __name__,template_folder='templates')
+point_blueprint = Blueprint("point", __name__, template_folder="templates")
+
 
 @point_blueprint.route("/point", methods=["POST"])
 @flask_login.login_required

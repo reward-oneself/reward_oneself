@@ -1,8 +1,12 @@
-from flask import request,Blueprint
 import flask_login
+from flask import Blueprint, request
+
 from .timer_render import timer
 
-timer_submit_blueprint = Blueprint('timer_submit', __name__,template_folder='templates')
+timer_submit_blueprint = Blueprint(
+    "timer_submit", __name__, template_folder="templates"
+)
+
 
 @timer_submit_blueprint.route("/timer_submit", methods=["POST"])
 @flask_login.login_required
