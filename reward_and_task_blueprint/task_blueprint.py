@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from extensions import db, error_handler
 import flask_login
+from flask import Blueprint, redirect, render_template, request, url_for
 
-
+from extensions import db, error_handler
 
 task_blueprint = Blueprint(
     "task_blueprint", __name__, template_folder="templates"
