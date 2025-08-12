@@ -36,6 +36,10 @@ from system_blueprint.heartbeat import heartbeat_blueprint
 from system_blueprint.hitokoto import hitokoto_blueprint
 from system_blueprint.index import index_blueprint
 from system_blueprint.settings import settings_blueprint
+from point_and_timer_blueprint.point import point_blueprint
+from point_and_timer_blueprint.timer_submit import timer_submit_blueprint
+
+
 
 app = Flask(__name__)
 
@@ -46,6 +50,9 @@ app.register_blueprint(settings_blueprint)
 app.register_blueprint(index_blueprint)
 app.register_blueprint(hitokoto_blueprint)
 app.register_blueprint(heartbeat_blueprint)
+app.register_blueprint(point_blueprint)
+app.register_blueprint(timer_submit_blueprint)
+
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -74,114 +81,6 @@ def init_db():
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
     return User.query.get(int(user_id))
-
-
-@app.route("/point", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def point():
-    user = flask_login.current_user
-    point_change = int(request.form.get("point_change"))
-    name = request.form.get("name")
-    repeat = request.form.get("repeat") == "True"
-    from_page = request.form.get("from")
-
-    time = int(request.form.get("time"))
-
-    def process_point_change(type, repeat):
-        """处理积分变更，返回结果"""
-
-        if not point_change and name:
-            raise ValueError(info="参数错误")
-
-        # 处理积分变更
-        updated_point = user.user_data.point + point_change
-        if updated_point < 0:
-            return ("失败，积分不足", False)
-
-        user.user_data.point = updated_point
-
-        if type == "reward" or repeat:
-            return ("成功", False)
-
-        try:
-            task = dict(user.user_data.task)
-            del task[name]
-            user.user_data.task = task
-            db.session.commit()
-            return ("成功。该任务已自动删除", True)
-        except KeyError:
-            return ("成功。任务不存在", False)
-
-    if point_change < 0:
-        # 如果积分变化为负数，则是奖励，跳过处理任务的逻辑
-        return_value = process_point_change(type="reward", repeat=repeat)
-        result = return_value[0]
-        return render_template(
-            "point.html", result=result, name=name, point=user.user_data.point
-        )
-
-    if time == 0:
-        result, delete = process_point_change(type="task", repeat=repeat)
-        return render_template(
-            "point.html", result=result, name=name, point=user.user_data.point
-        )
-
-    if from_page == "timer":
-        result, delete = process_point_change(type="task", repeat=repeat)
-        if delete:
-            return render_template(
-                "point.html",
-                result=result,
-                name=name,
-                point=user.user_data.point,
-            )
-        else:
-            return render_template(
-                "point.html",
-                result=result,
-                name=name,
-                point=user.user_data.point,
-                from_page=from_page,
-                value=point_change,
-                time=time,
-                repeat=repeat,
-            )
-    else:
-        return timer(name=name, value=point_change, time=time, repeat=repeat)
-
-
-# 计时器逻辑：首先来到/point路由，判断是否是定时任务（时间不为0）
-# 如果是则调用timer函数跳转计时器
-#   计时完成后再次回到/point路由，完成相应积分变更（非重复任务会在此时被删除）
-#   如果任务被删除，则此时渲染正常的积分操作结果页面，自动跳转回主页
-#   否则返回积分操作结果页面，传递from_page = "timer"，触发{% if from_page == "timer" %}，渲染一个包含询问是否继续的表单
-#       如果继续，则发送post请求到/timer_submit路由，并将参数转到timer函数，开始计时
-# 否则调用process_point_change函数处理积分变更。此时渲染正常的积分操作结果页面，自动跳转回主页
-
-
-@app.route("/timer_submit", methods=["POST"])
-@flask_login.login_required
-def timer_submit():
-    time = request.form.get("time")
-    name = request.form.get("name")
-    value = request.form.get("value")
-    repeat = request.form.get("repeat")
-
-    return timer(name=name, value=value, time=time, repeat=repeat)
-
-
-# 抽离出单独的函数，处理来自服务器本身和网络的数据，让服务器的数据不用走网络
-def timer(name, value, time, repeat):
-    return render_template(
-        "timer.html",
-        name=name,
-        value=value,
-        time=time,
-        repeat=repeat,
-        rest_time_to_work_ratio=flask_login.current_user.user_data.rest_time_to_work_ratio,
-    )
-
 
 @app.route("/add_reward")
 @flask_login.login_required
