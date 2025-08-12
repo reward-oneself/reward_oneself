@@ -29,7 +29,7 @@ def login_submit():
             raise ValueError(info="用户名或密码错误")
 
         flask_login.login_user(user)
-        return redirect(url_for("index"))
+        return redirect(url_for("index_blueprint.index"))
 
     return wrapped_login_submit()
 
@@ -75,7 +75,7 @@ def register_submit():
         db.session.commit()
 
         flash("注册成功，请登录")
-        return redirect(url_for("login"))
+        return redirect(url_for("auth.login"))
 
     return wrapped_register_submit()
 
@@ -86,7 +86,7 @@ def logout():
 
     def wrapped_logout():
         flask_login.logout_user()
-        return redirect(url_for("login"))
+        return redirect(url_for("auth.login"))
 
     return wrapped_logout()
 
@@ -127,6 +127,6 @@ def delete_account_submit():
         db.session.commit()
         flask_login.logout_user()
         flash("您的账户已成功注销")
-        return redirect(url_for("index"))
+        return redirect(url_for("index_blueprint.index"))
 
     return wrapped_delete_account_submit()

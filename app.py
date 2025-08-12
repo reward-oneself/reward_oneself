@@ -27,19 +27,25 @@ from flask import (
 )
 
 import settings
-from auth_blueprint.auth_blueprint import auth_blueprint
-from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
 from filehandle import FileHandler
-from hitokoto import get_hitokoto
 from models import User
+from auth_blueprint.auth_blueprint import auth_blueprint
+from doc_blueprint.doc_blueprint import doc_blueprint
+from system_blueprint.heartbeat import heartbeat_blueprint
+from system_blueprint.hitokoto import hitokoto_blueprint
+from system_blueprint.index import index_blueprint
+from system_blueprint.settings import settings_blueprint
 
 app = Flask(__name__)
 
-# 注册auth蓝图
 
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(doc_blueprint)
+app.register_blueprint(settings_blueprint)
+app.register_blueprint(index_blueprint)
+app.register_blueprint(hitokoto_blueprint)
+app.register_blueprint(heartbeat_blueprint)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -68,131 +74,6 @@ def init_db():
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
     return User.query.get(int(user_id))
-
-
-@app.route("/heartbeat")
-@flask_login.login_required
-def heartbeat():
-    """
-    心跳保活接口
-    用于计时器页面保持会话活跃，防止长时间计时期间会话过期
-    """
-    return "", 204  # 返回空内容和204状态码
-
-
-@app.route("/")
-@flask_login.login_required
-def index():
-    user = flask_login.current_user
-    db.session.refresh(user.user_data)
-    point_value = user.user_data.point
-    reward = user.user_data.reward
-    task = user.user_data.task
-
-    reward_text = ""
-    file_handler = FileHandler("partials/reward_text.html")
-    add_text = file_handler.read()
-    for name, value in reward.items():
-        reward_text += add_text.format(name=name, value=value)
-
-    def sort_task():
-        task_name_priority = {}
-        for name, value in task.items():
-            for n, v in value.items():
-                if n == "priority":
-                    if v == "max":
-                        task_name_priority[name] = float("inf")
-                    else:
-                        task_name_priority[name] = v
-                    break
-        sorted_task = sorted(
-            task_name_priority.items(), key=lambda x: x[1], reverse=True
-        )  # 正序排列，返回包含元组的列表
-        sort_task_name_list = []
-        for i in sorted_task:
-            sort_task_name_list.append(i[0])  # 将元组中的元素取出
-        return sort_task_name_list
-
-    task_text = ""
-    sort_task_name_list = sort_task()
-    file_handler = FileHandler("partials/task_text.html")
-    add_text = file_handler.read()
-    for i in sort_task_name_list:
-        task_data = task.get(i)
-        if task_data["repeat"]:
-            repeat_icon = "🔁"
-        else:
-            repeat_icon = "🚫"
-        task_text += add_text.format(
-            points=task_data["points"],
-            time=task_data["time"],
-            priority=task_data["priority"],
-            repeat=task_data["repeat"],
-            repeat_icon=repeat_icon,
-            i=i,
-        )
-
-    love = user.user_data.love
-    hitokoto = get_hitokoto(settings.HITOKOTO_URL, love, settings.LOCAL_MODE)
-    return render_template(
-        "index.html",
-        username=user.username,
-        point=point_value,
-        hitokoto=hitokoto,
-        reward=reward_text,
-        task=task_text,
-    )
-
-
-@app.route("/hitokoto")
-@flask_login.login_required
-def hitokoto():
-    if settings.LOCAL_MODE:
-        return render_template(
-            "error.html",
-            type="服务器一言设置为local模式，只支持显示存储在服务器上的诗词库",
-        )
-    return render_template("hitokoto.html")
-
-
-@app.route("/hitokoto_submit", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def hitokoto_submit():
-
-    hitokoto = request.form.to_dict()
-    hitokoto_text = ""
-    for k, v in hitokoto.items():
-        if k != "csrf_token":
-            hitokoto_text += v
-
-    user = flask_login.current_user
-    db.session.refresh(user.user_data)
-    user.user_data.love = hitokoto_text
-    db.session.commit()
-    return redirect(url_for("index"))
-
-
-@app.route("/settings")
-@flask_login.login_required
-def setting():
-    return render_template("settings.html")
-
-
-@app.route("/settings_submit", methods=["POST"])
-@flask_login.login_required
-@error_handler
-def settings_submit():
-    ratio = request.form.get("rest_time_to_work_ratio")
-    ratio = int(ratio)
-    if ratio <= 0:
-        raise ValueError(info="比例必须为正整数")
-
-    user = flask_login.current_user
-    db.session.refresh(user.user_data)
-    user.user_data.rest_time_to_work_ratio = ratio
-    db.session.commit()
-    return redirect(url_for("index"))
 
 
 @app.route("/point", methods=["POST"])
@@ -345,7 +226,7 @@ def add_reward_submit():
     user.user_data.reward = reward  # 完全替换字典触发数据库更新
 
     db.session.commit()  # 提交数据库事务
-    return redirect(url_for("index"))
+    return redirect(url_for("index_blueprint.index"))
 
 
 @app.route("/add_task_submit", methods=["POST"])
@@ -409,7 +290,7 @@ def add_task_submit():
     user.user_data.task = task  # 完全替换字典触发数据库更新
 
     db.session.commit()  # 提交数据库事务
-    return redirect(url_for("index"))
+    return redirect(url_for("index_blueprint.index"))
 
 
 @app.route("/remove", methods=["POST"])
@@ -483,7 +364,7 @@ def remove_submit() -> str:
 
     db.session.commit()  # 提交数据库事务
 
-    return redirect(url_for("index"))
+    return redirect(url_for("index_blueprint.index"))
 
 
 @login_manager.unauthorized_handler
