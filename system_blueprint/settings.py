@@ -3,7 +3,8 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from extensions import db, error_handler
 
-settings_blueprint = Blueprint("settings_blueprint", __name__)
+settings_blueprint = Blueprint("settings_blueprint", __name__, template_folder="templates")
+
 
 
 @settings_blueprint.route("/settings")

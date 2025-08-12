@@ -4,7 +4,8 @@ from flask_login import current_user, login_required
 import settings
 from extensions import db, error_handler
 
-hitokoto_blueprint = Blueprint("hitokoto_blueprint", __name__)
+hitokoto_blueprint = Blueprint("hitokoto_blueprint", __name__, template_folder="templates")
+
 
 
 @hitokoto_blueprint.route("/hitokoto")
