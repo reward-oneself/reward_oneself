@@ -195,7 +195,6 @@ def settings_submit():
     return redirect(url_for("index"))
 
 
-
 @app.route("/point", methods=["POST"])
 @flask_login.login_required
 @error_handler

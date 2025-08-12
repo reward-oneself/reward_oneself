@@ -1,9 +1,10 @@
-from flask import Blueprint, Response
-from flask import render_template
+from flask import Blueprint, Response, render_template
+
 from filehandle import FileHandler
 
-doc_blueprint = Blueprint("doc_blueprint", __name__,template_folder="templates")
-
+doc_blueprint = Blueprint(
+    "doc_blueprint", __name__, template_folder="templates"
+)
 
 
 @doc_blueprint.route("/LICENSE")
@@ -39,6 +40,7 @@ def licenses_not_software():
     license_file = FileHandler("LICENSES_NOT_SOFTWARE")
     licenses_not_software_text = license_file.read()
     return Response(licenses_not_software_text, mimetype="text/plain")
+
 
 @doc_blueprint.route("/about")
 def about():
