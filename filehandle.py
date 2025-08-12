@@ -23,10 +23,14 @@ class FileHandler:
         with open(self.path(), encoding="utf-8", mode="w") as d:
             d.write(content)
 
-    def read(self):
-
+    def read(self, encoding="utf-8"):
+        """
+        读取文件内容
+        :param encoding: 文件编码格式，默认为utf-8
+        :return: 文件内容
+        """
         if self.check():
-            with open(self.path(), encoding="utf-8") as d:
+            with open(self.path(), encoding=encoding) as d:
                 return d.read()
         else:
             raise FileNotFoundError(f"文件 {self.path()} 不存在")

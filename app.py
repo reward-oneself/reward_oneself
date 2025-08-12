@@ -195,10 +195,6 @@ def settings_submit():
     return redirect(url_for("index"))
 
 
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 
 @app.route("/point", methods=["POST"])
 @flask_login.login_required
