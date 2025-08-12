@@ -20,7 +20,6 @@
 import flask_login
 from flask import (
     Flask,
-    Response,
     redirect,
     render_template,
     request,
@@ -29,6 +28,7 @@ from flask import (
 
 import settings
 from auth.auth import auth_blueprint
+from doc_blueprint.doc_blueprint import doc_blueprint
 from extensions import csrf, db, error_handler, login_manager
 from hitokoto import get_hitokoto
 from models import User
@@ -38,6 +38,7 @@ app = Flask(__name__)
 # 注册auth蓝图
 
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(doc_blueprint)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATA
@@ -66,27 +67,6 @@ def init_db():
 def load_user(user_id):
     # 根据实际情况实现用户查询逻辑
     return User.query.get(int(user_id))
-
-
-@app.route("/LICENSE")
-def license():
-    with open("LICENSE", "r", encoding="utf-8") as f:
-        license_text = f.read()
-    return Response(license_text, mimetype="text/plain")
-
-
-@app.route("/LICENSES")
-def licenses():
-    with open("LICENSES", "r", encoding="utf-8") as f:
-        licenses_text = f.read()
-    return Response(licenses_text, mimetype="text/plain")
-
-
-@app.route("/LICENSES_NOT_SOFTWARE")
-def licenses_not_software():
-    with open("LICENSES_NOT_SOFTWARE", "r", encoding="utf-8") as f:
-        licenses_not_software_text = f.read()
-    return Response(licenses_not_software_text, mimetype="text/plain")
 
 
 @app.route("/heartbeat")
