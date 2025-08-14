@@ -53,6 +53,7 @@ app.register_blueprint(heartbeat_blueprint)
 app.register_blueprint(point_blueprint)
 app.register_blueprint(timer_submit_blueprint)
 app.register_blueprint(reward_blueprint)
+
 app.register_blueprint(task_blueprint)
 
 

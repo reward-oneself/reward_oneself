@@ -4,20 +4,20 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from extensions import db, error_handler
 
 task_blueprint = Blueprint(
-    "task_blueprint", __name__, template_folder="templates"
+    "task_blueprint", __name__, template_folder="templates", url_prefix="/task"
 )
 
 
-@task_blueprint.route("/add_task")
+@task_blueprint.route("/add")
 @flask_login.login_required
 def add_task():
     """
     渲染添加新任务的页面
     """
-    return render_template("add_new_task.html")
+    return render_template("add_task.html")
 
 
-@task_blueprint.route("/add_task_submit", methods=["POST"])
+@task_blueprint.route("/add_submit", methods=["POST"])
 @flask_login.login_required
 @error_handler
 def add_task_submit():

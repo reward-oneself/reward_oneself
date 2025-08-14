@@ -4,20 +4,21 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from extensions import db, error_handler
 
 reward_blueprint = Blueprint(
-    "reward_blueprint", __name__, template_folder="templates"
+    "reward_blueprint", __name__, template_folder="templates", url_prefix="/reward"
 )
 
 
-@reward_blueprint.route("/add_reward")
+@reward_blueprint.route("/add")
 @flask_login.login_required
 def add_reward():
     """
     渲染添加新奖励的页面
     """
-    return render_template("add_new_reward.html")
+    return render_template("add_reward.html")
 
 
-@reward_blueprint.route("/add_reward_submit", methods=["POST"])
+@reward_blueprint.route("/add_submit", methods=["POST"])
+
 @flask_login.login_required
 @error_handler
 def add_reward_submit():

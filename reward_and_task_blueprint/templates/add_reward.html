@@ -61,7 +61,7 @@
             {% endwith %}
         </div>
         <h1 class="title">添加</h1>
-        <form name="rewardForm" action="/add_reward_submit" method="POST" onsubmit="return validateRewardForm()" class="container mt-4" style="max-width: 600px;">
+        <form name="rewardForm" action="/reward/add_submit" method="POST" onsubmit="return validateRewardForm()" class="container mt-4" style="max-width: 600px;">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <div class="mb-3">
                  <label  for="name">名称</label>
