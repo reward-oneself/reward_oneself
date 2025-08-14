@@ -3,6 +3,8 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from extensions import db, error_handler
 
+from . import remove as remove_model
+
 task_blueprint = Blueprint(
     "task_blueprint", __name__, template_folder="templates", url_prefix="/task"
 )
@@ -79,3 +81,15 @@ def add_task_submit():
 
     db.session.commit()  # 提交数据库事务
     return redirect(url_for("index_blueprint.index"))
+
+
+@task_blueprint.route("/remove")
+@flask_login.login_required
+def remove_task():
+    return remove_model.remove("task")
+
+
+@task_blueprint.route("/remove_submit", methods=["POST"])
+@flask_login.login_required
+def remove_task_submit():
+    return remove_model.remove_submit("task", request.form.to_dict())

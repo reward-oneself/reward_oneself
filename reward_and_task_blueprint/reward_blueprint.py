@@ -3,8 +3,13 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from extensions import db, error_handler
 
+from . import remove as remove_model  # 使用相对导入当前目录的模块
+
 reward_blueprint = Blueprint(
-    "reward_blueprint", __name__, template_folder="templates", url_prefix="/reward"
+    "reward_blueprint",
+    __name__,
+    template_folder="templates",
+    url_prefix="/reward",
 )
 
 
@@ -18,7 +23,6 @@ def add_reward():
 
 
 @reward_blueprint.route("/add_submit", methods=["POST"])
-
 @flask_login.login_required
 @error_handler
 def add_reward_submit():
@@ -44,3 +48,15 @@ def add_reward_submit():
 
     db.session.commit()  # 提交数据库事务
     return redirect(url_for("index_blueprint.index"))
+
+
+@reward_blueprint.route("/remove")
+@flask_login.login_required
+def remove():
+    return remove_model.remove("reward")
+
+
+@reward_blueprint.route("/remove_submit", methods=["POST"])
+@flask_login.login_required
+def remove_submit():
+    return remove_model.remove_submit("reward", request.form.to_dict())

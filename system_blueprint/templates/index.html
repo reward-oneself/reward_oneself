@@ -70,11 +70,7 @@
                     <a href="/reward/add">➕添加新奖励</a>
                 </td>
                 <td>
-                    <form action="/remove" method="post">
-                        <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
-                        <input name="type" type="hidden" value="reward">
-                        <button class="btn-link" type="submit">🗑️删除奖励</button>
-                    </form>
+                    <a href="/reward/remove">🗑️删除奖励</a>
                 </td>
             </tr>
         </table>
@@ -104,11 +100,7 @@
                     <a href="/task/add">➕添加新任务</a>
                 </td>
                 <td colspan="2">
-                    <form action="/remove" method="post">
-                        <input name="csrf_token" type="hidden" class="csrf_token" value="csrf_token">
-                        <input name="type" type="hidden" value="task">
-                        <button class="btn-link" type="submit">🗑️删除任务</button>
-                    </form>
+                    <a href="/task/remove">🗑️删除任务</a>
                 </td>
             </tr>
         </table>
