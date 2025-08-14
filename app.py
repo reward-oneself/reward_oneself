@@ -23,7 +23,6 @@ from flask import (
     url_for,
 )
 
-
 import settings
 from auth_blueprint.auth_blueprint import auth_blueprint
 from doc_blueprint.doc_blueprint import doc_blueprint
