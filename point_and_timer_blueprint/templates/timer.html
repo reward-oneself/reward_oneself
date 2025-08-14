@@ -7,6 +7,7 @@
     <!-- 添加移动端适配视口设置 -->
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
     <title>计时器</title>
 
@@ -36,8 +37,9 @@
             flex-direction: column;
             justify-content: center;
         }
+
         @media (max-width: 768px) {
-            footer{
+            footer {
                 height: 10%;
                 width: 100%;
                 font-size: 10px;
@@ -48,13 +50,13 @@
 </head>
 
 <body>
-    <div class="timer-div">
-        <h1>{{ name }}</h1>
+    <div class="container mt-4 timer-div" style="max-width: 800px;">
+        <h1 class="title">{{ name }}</h1>
         <b id="status">工作中</b>
         <div id="time-display" style="font-size: 48px; margin: 20px 0;">00:00</div>
-        <p class="audio-prompt" style="color: rgb(255, 255, 0); background-color: rgba(255, 0, 0, 0.5); padding: 10px 0;">🔐点击页面任意位置解锁提示音播放</p>
+        <p id="audio-prompt" style="color: rgb(255, 255, 0); background-color: rgba(255, 0, 0, 0.5);">🔐点击页面任意位置解锁提示音播放</p>
         <form action="/point" method="post" id="timer-form" style="display: none;">
-            <input name="csrf_token" type="hidden" class="csrf_token" value="{{ csrf_token() }}"></input>
+            <input name="csrf_token" type="hidden" class="form-control csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="name" value="{{ name }}">
             <input type="hidden" name="point_change" value="{{ value }}">
             <input type="hidden" name="time" value="{{ time }}">
@@ -62,7 +64,7 @@
             <input type="hidden" name="from" value="timer">
         </form>
     </div>
-    <footer>
+    <footer class="mt-4">
         <p>本页面的计时器提示音是：自制手机铃声 许可:CC-BY 作者:scottchains 来源:耳聆网 https://www.ear0.com/sound/37361</p>
         <p>本页面的完成音效是：完成音效 许可:CC-BY-NC 作者:nckn 来源:耳聆网 https://www.ear0.com/sound/12432</p>
     </footer>
@@ -73,14 +75,14 @@
         var noSleep = new NoSleep();
         console.log('NoSleep 已初始化');
 
-        
-        // 初始化参数
-        const workTime = parseInt({{ time }}); 
-        const restRatio = parseInt({{ rest_time_to_work_ratio }}); 
-        const restTime = Math.round(workTime / restRatio); 
-        const isRepeat = {{ repeat | lower }}; 
 
-        let currentTime = workTime * 60; 
+        // 初始化参数
+        const workTime = parseInt({{ time }});
+        const restRatio = parseInt({{ rest_time_to_work_ratio }});
+        const restTime = Math.round(workTime / restRatio);
+        const isRepeat = {{ repeat | lower }};
+
+        let currentTime = workTime * 60;
         let isWorking = true;
         let timerInterval;
         let heartbeatInterval; // 心跳保活定时器
@@ -89,16 +91,16 @@
         // 新增：用户首次点击解锁自动播放和防止休眠
         function unlockAudio() {
             // 启用 NoSleep 防止设备休眠
-            try{
-            noSleep.enable();
-            console.log('NoSleep 已启用');
+            try {
+                noSleep.enable();
+                console.log('NoSleep 已启用');
             } catch (error) {
                 console.error('NoSleep 启用失败：', error);
             }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioContext.resume().then(() => {
                 console.log('音频上下文已解锁');
-                document.querySelector('.audio-prompt').style.display = 'none'; // 隐藏提示
+                document.getElementById('audio-prompt').style.display = 'none'; // 隐藏提示
             });
             document.body.removeEventListener('click', unlockAudio);
         }
@@ -111,7 +113,7 @@
             iframe.style.display = 'none';
             iframe.src = '/heartbeat';
             document.body.appendChild(iframe);
-            
+
             // 一段时间后移除iframe以释放资源
             setTimeout(() => {
                 if (iframe.parentNode) {
@@ -134,7 +136,7 @@
                 clearInterval(heartbeatInterval);
                 heartbeatInterval = null;
             }
-            
+
             // 禁用 NoSleep 允许设备休眠
             noSleep.disable();
             console.log('NoSleep 已禁用');
@@ -156,7 +158,8 @@
 
             // 休息阶段开始时播放音频（使用已解锁的上下文）
             if (!isWorking && restTime > 0) {
-                const audio = new Audio("/timer_sound");
+                const audio = new Audio("{{ url_for('static', filename='timer.wav') }}");
+                    // 使用url_for引用静态资源
                 // 检查是否需要恢复上下文（兼容旧浏览器）
                 if (audioContext && audioContext.state === 'suspended') {
                     audioContext.resume().then(() => audio.play());
@@ -187,7 +190,8 @@
                 }
             } else {
                 // 休息结束，播放完成音效
-                const finishAudio = new Audio("/finish_sound");
+                const finishAudio = new Audio("{{ url_for('static', filename='finish.wav') }}");
+                    // 使用url_for引用静态资源
                 finishAudio.play().then(() => {
                     // 音效播放完成后提交表单
                     stopHeartbeat(); // 停止心跳

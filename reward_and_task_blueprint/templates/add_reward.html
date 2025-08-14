@@ -1,4 +1,4 @@
-    <!-- Copyright (C) 2025 陈子涵
+<!-- Copyright (C) 2025 陈子涵
     Contact information:
     Tel:18750386615
     Email:2502820816@qq.com
@@ -24,7 +24,8 @@
         <!-- 添加移动端适配视口设置 -->
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
+        <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css.css') }}" rel="stylesheet">
         <title>添加新奖励或任务</title>
         <script>
             function validateRewardForm() {
@@ -59,19 +60,19 @@
             {% endif %}
             {% endwith %}
         </div>
-        <h1>添加</h1>
-        <form name="rewardForm" action="/add_reward_submit" method="POST" onsubmit="return validateRewardForm()">
+        <h1 class="title">添加</h1>
+        <form name="rewardForm" action="/reward/add_submit" method="POST" onsubmit="return validateRewardForm()" class="container mt-4" style="max-width: 600px;">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <div style="margin: 10px;">
-                <label>名称：</label>
-                <input name="name" required style="padding: 5px; width: 200px;" type="text">
+            <div class="mb-3">
+                 <label  for="name">名称</label>
+                <input class="form-control" id="name" name="name" required type="text">
             </div>
-            <div style="margin: 10px;">
-                <label>分值：</label>
-                <input min="1" name="points" required style="padding: 5px; width: 100px;" type="number">
+            <div class="mb-3">
+                 <label  for="points">分值</label>
+                <input class="form-control" id="points" min="1" name="points" required type="number">
             </div>
             <input name="entry_type" type="hidden" value="{{ entry_type }}">
-            <button type="submit">
+            <button type="submit" class="btn btn-primary w-100">
                 💾提交
             </button>
         </form>
