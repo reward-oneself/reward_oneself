@@ -89,7 +89,7 @@
         {% endwith %}
     </div>
     <h1 class="title">添加</h1>
-    <form name="taskForm" action="/add_task_submit" method="POST" onsubmit="return validateTaskForm()"
+    <form name="taskForm" action="/task/add_submit" method="POST" onsubmit="return validateTaskForm()"
         class="container mt-4" style="max-width: 600px;">
         <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
         <div class="card mb-3">

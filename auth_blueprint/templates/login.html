@@ -67,11 +67,11 @@
         <form name="loginForm" action="/login_submit" method="post" onsubmit="return validateLoginForm()" class="container mt-5" style="max-width: 500px;">
             <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <div class="mb-3">
-             <label  for="username">用户名</label>
+             <label for="username">用户名</label>
             <input class="form-control" id="username" name="username" required type="text">
         </div>
         <div class="mb-3">
-             <label  for="password">密码</label>
+             <label for="password">密码</label>
             <input class="form-control" id="password" name="password" required type="password">
         </div>
         <button type="submit" class="btn btn-primary w-100">🔐登录</button>

@@ -44,10 +44,10 @@
         <div class="container mt-4" style="max-width: 800px;">
     <div class="card mb-4">
         <div class="card-body">
-            <form action="/remove_submit" method="post">
+            <form action="/{{ type }}/remove_submit" method="post">
+
                 {{text|safe}}
                 <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                <input name="type" type="hidden" value="{{type}}">
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-danger">🗑️删除</button>
                     <button onclick="window.location.href='/'", type="button" class="btn btn-secondary">🏠取消</button>

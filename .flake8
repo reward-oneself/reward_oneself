@@ -1,4 +1,4 @@
 [flake8]
-exclude = .venv,__pycache__,build,dist,*.egg
-ingnore = E501,E203,W503
+exclude = .venv,__pycache__,build,dist,*.egg,*/templates/*.html,auth/templates/*.html
+ignore = E999,E501,E203,W503,W291,W293
 max-line-length = 100

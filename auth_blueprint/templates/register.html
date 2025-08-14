@@ -74,11 +74,11 @@
     <form name="registerForm" action="/register_submit" method="post" onsubmit="return validateRegisterForm()" class="container mt-5" style="max-width: 500px;">
         <input name="csrf_token" type="hidden" value="{{ csrf_token() }}">
         <div class="mb-3">
-             <label  for="username">用户名</label>
+             <label for="username">用户名</label>
             <input class="form-control" id="username" name="username" required type="text">
         </div>
         <div class="mb-3">
-             <label  for="password">密码（至少6位）</label>
+             <label for="password">密码（至少6位）</label>
             <input class="form-control" id="password" name="password" required type="password">
         </div>
         <button type="submit" class="btn btn-primary w-100">📝注册</button>

@@ -158,7 +158,8 @@
 
             // 休息阶段开始时播放音频（使用已解锁的上下文）
             if (!isWorking && restTime > 0) {
-                const audio = new Audio("/timer_sound");
+                const audio = new Audio("{{ url_for('static', filename='timer.wav') }}");
+                    // 使用url_for引用静态资源
                 // 检查是否需要恢复上下文（兼容旧浏览器）
                 if (audioContext && audioContext.state === 'suspended') {
                     audioContext.resume().then(() => audio.play());
@@ -189,7 +190,8 @@
                 }
             } else {
                 // 休息结束，播放完成音效
-                const finishAudio = new Audio("/finish_sound");
+                const finishAudio = new Audio("{{ url_for('static', filename='finish.wav') }}");
+                    // 使用url_for引用静态资源
                 finishAudio.play().then(() => {
                     // 音效播放完成后提交表单
                     stopHeartbeat(); // 停止心跳

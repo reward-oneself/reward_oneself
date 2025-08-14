@@ -5,9 +5,11 @@ import random
 
 import requests
 
-with open("hitokoto.txt", "r", encoding="utf-8") as f:
-    hitokoto_text = f.read()
-    hitokoto_text = hitokoto_text.split("\n")
+from filehandle import FileHandler
+
+file_handler = FileHandler("hitokoto.txt")
+hitokoto_text = file_handler.read()
+hitokoto_text = hitokoto_text.split("\n")
 
 
 def get_hitokoto_by_file():
