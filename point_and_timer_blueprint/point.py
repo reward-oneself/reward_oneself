@@ -34,8 +34,8 @@ def point():
             return ("失败，积分不足", False)
 
         user.user_data.point = updated_point
-        db.session.commit()  # 提交积分更新
 
+        db.session.commit()  # 提交积分更新
         if type == "reward" or repeat:
             return ("成功", False)
 
